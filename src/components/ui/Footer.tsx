@@ -70,7 +70,7 @@ const Footer = () => {
               {/* Column 2: Company */}
               <div>
                 <h3 className="text-lg font-bold mb-5 text-white">Company</h3>
-                <ul className="space-y-3 text-base">
+                <ul className="space-y-3 text-sm">
                   <li><a href="/about" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">About us</a></li>
                   <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Careers/Jobs</a></li>
                   <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Contact Us</a></li>
@@ -102,7 +102,7 @@ const Footer = () => {
               {/* Column 3: Legal */}
               <div>
                 <h3 className="text-lg font-bold mb-5 text-white">Legal</h3>
-                <ul className="space-y-3 text-base">
+                <ul className="space-y-3 text-sm">
                   <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Link policy</a></li>
                   <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Advertising</a></li>
                   <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Disclaimer</a></li>
@@ -112,7 +112,7 @@ const Footer = () => {
                 </ul>
                 
                 <h3 className="text-lg font-bold mt-8 mb-5 text-white">Sites</h3>
-                <ul className="space-y-3 text-base">
+                <ul className="space-y-3 text-sm">
                   <li><a href="/" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">weatherapp.com</a></li>
                   <li><a href="/" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">weatherapp.in</a></li>
                 </ul>
@@ -121,7 +121,7 @@ const Footer = () => {
               {/* Column 4: Services */}
               <div>
                 <h3 className="text-lg font-bold mb-5 text-white">Services</h3>
-                <ul className="space-y-3 text-base">
+                <ul className="space-y-3 text-sm">
                   <li><a href="/world-clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">World Clock</a></li>
                   <li><a href="/time-zones/all" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Time Zones</a></li>
                   <li><a href="/calendar/monthly" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Calendar</a></li>
@@ -138,7 +138,7 @@ const Footer = () => {
               {/* Column 5: Free Tools */}
               <div>
                 <h3 className="text-lg font-bold mb-5 text-white">Free Tools</h3>
-                <ul className="space-y-3 text-base">
+                <ul className="space-y-3 text-sm">
                   <li><a href="/world-clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Free Clock Widget</a></li>
                   <li><a href="/timers/alarm" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Alarm Clock</a></li>
                   <li><a href="/timers/clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Digital Clock</a></li>

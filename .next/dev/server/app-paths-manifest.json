@@ -1,8 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/news/local/page": "app/news/local/page.js",
   "/page": "app/page.js",
-  "/weather/5day/page": "app/weather/5day/page.js",
-  "/weather/alerts/page": "app/weather/alerts/page.js",
-  "/weather/page": "app/weather/page.js"
+  "/sun-moon-space/sunrise-sunset/page": "app/sun-moon-space/sunrise-sunset/page.js"
 }

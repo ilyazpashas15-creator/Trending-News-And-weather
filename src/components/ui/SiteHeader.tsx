@@ -1,77 +1,124 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+
+interface SearchSuggestion {
+    title: string;
+    path: string;
+    keywords: string[];
+}
 
 const SiteHeader = () => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [showResults, setShowResults] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredSuggestions, setFilteredSuggestions] = useState<SearchSuggestion[]>([]);
     const router = useRouter();
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    // Define searchable pages with keywords
-    const searchablePages = [
-        { title: 'Home', path: '/', keywords: ['home', 'main', 'weather', 'news'] },
-        { title: 'Weather - Current', path: '/weather', keywords: ['current', 'weather', 'now', 'today'] },
-        { title: 'Weather - 5 Day Forecast', path: '/weather/5day', keywords: ['5 day', 'forecast', 'week', 'future'] },
-        { title: 'Weather - 10 Day Forecast', path: '/weather/10day', keywords: ['10 day', 'forecast', 'extended'] },
-        { title: 'Weather - Hourly', path: '/weather/hourly', keywords: ['hourly', 'hour', 'today'] },
-        { title: 'Weather - Maps', path: '/weather/maps', keywords: ['maps', 'radar', 'satellite'] },
-        { title: 'Weather - Alerts', path: '/weather/alerts', keywords: ['alerts', 'warnings', 'severe'] },
-        { title: 'News - Breaking', path: '/news/breaking', keywords: ['breaking', 'news', 'latest'] },
-        { title: 'News - Local', path: '/news/local', keywords: ['local', 'news', 'city'] },
-        { title: 'News - World', path: '/news/world', keywords: ['world', 'international', 'global'] },
-        { title: 'News - Weather News', path: '/news/weather', keywords: ['weather news', 'climate'] },
-        { title: 'News - Archive', path: '/news/archive', keywords: ['archive', 'old', 'past'] },
-        { title: 'Sun, Moon & Space', path: '/sun-moon-space', keywords: ['sun', 'moon', 'space', 'astronomy'] },
-        { title: 'NASA Picture of the Day', path: '/sun-moon-space/nasa-apod', keywords: ['nasa', 'apod', 'picture', 'space'] },
+    const allPages: SearchSuggestion[] = [
+        { title: 'Weather Forecast', path: '/weather', keywords: ['weather', 'forecast', 'temperature', 'rain', 'sun'] },
+        { title: '5 Day Forecast', path: '/weather/5day', keywords: ['5 day', 'forecast', 'weather', 'week'] },
+        { title: '10 Day Forecast', path: '/weather/10day', keywords: ['10 day', 'forecast', 'weather'] },
+        { title: 'Hourly Weather', path: '/weather/hourly', keywords: ['hourly', 'weather', 'hour'] },
+        { title: 'Weather Alerts', path: '/weather/alerts', keywords: ['alerts', 'warning', 'weather'] },
+        { title: 'Weather Maps', path: '/weather/maps', keywords: ['maps', 'weather', 'radar'] },
+        { title: 'Breaking News', path: '/news/breaking', keywords: ['news', 'breaking', 'latest'] },
+        { title: 'World News', path: '/news/world', keywords: ['world', 'news', 'international'] },
+        { title: 'Local News', path: '/news/local', keywords: ['local', 'news', 'nearby'] },
+        { title: 'Weather News', path: '/news/weather', keywords: ['weather', 'news'] },
+        { title: 'News Archive', path: '/news/archive', keywords: ['archive', 'news', 'old'] },
+        { title: 'World Clock', path: '/world-clock/converter', keywords: ['world', 'clock', 'time', 'converter'] },
+        { title: 'Time Zone Converter', path: '/time-zones/converter', keywords: ['timezone', 'converter', 'time'] },
+        { title: 'All Time Zones', path: '/time-zones/all', keywords: ['timezone', 'all', 'list'] },
+        { title: 'Monthly Calendar', path: '/calendar/monthly', keywords: ['calendar', 'month', 'monthly'] },
+        { title: 'Yearly Calendar', path: '/calendar/yearly', keywords: ['calendar', 'year', 'yearly'] },
+        { title: 'Holiday Calendar', path: '/calendar/holiday', keywords: ['holiday', 'calendar', 'vacation'] },
+        { title: 'Standard Calculator', path: '/calculators/standard', keywords: ['calculator', 'math', 'calculate'] },
+        { title: 'Date Calculator', path: '/calculators/date', keywords: ['date', 'calculator', 'days'] },
+        { title: 'Time Calculator', path: '/calculators/time', keywords: ['time', 'calculator', 'hours'] },
+        { title: 'Currency Calculator', path: '/calculators/currency', keywords: ['currency', 'money', 'exchange'] },
+        { title: 'Stopwatch', path: '/timers/stopwatch', keywords: ['stopwatch', 'timer', 'stop'] },
+        { title: 'Countdown Timer', path: '/timers/countdown', keywords: ['countdown', 'timer', 'count'] },
+        { title: 'Alarm Clock', path: '/timers/alarm', keywords: ['alarm', 'clock', 'wake'] },
+        { title: 'Clock', path: '/timers/clock', keywords: ['clock', 'time', 'current'] },
+        { title: 'NASA Picture of the Day', path: '/sun-moon-space/nasa-apod', keywords: ['nasa', 'space', 'picture', 'astronomy'] },
         { title: 'Moon Phases', path: '/sun-moon-space/moon-phases', keywords: ['moon', 'phases', 'lunar'] },
         { title: 'Sunrise & Sunset', path: '/sun-moon-space/sunrise-sunset', keywords: ['sunrise', 'sunset', 'sun'] },
-        { title: 'Solar Eclipse', path: '/sun-moon-space/solar-eclipse', keywords: ['solar', 'eclipse', 'sun'] },
-        { title: 'Lunar Eclipse', path: '/sun-moon-space/lunar-eclipse', keywords: ['lunar', 'eclipse', 'moon'] },
-        { title: 'ISS Tracker', path: '/sun-moon-space/iss', keywords: ['iss', 'space station', 'tracker'] },
-        { title: 'Planets', path: '/sun-moon-space/planets', keywords: ['planets', 'solar system'] },
-        { title: 'Time Zones - All', path: '/time-zones/all', keywords: ['time zones', 'all', 'world time'] },
-        { title: 'Time Zones - By Continent', path: '/time-zones/continent', keywords: ['continent', 'time zones'] },
-        { title: 'Time Zones - By Country', path: '/time-zones/country', keywords: ['country', 'time zones'] },
-        { title: 'Time Zones - Offsets', path: '/time-zones/offsets', keywords: ['offsets', 'utc', 'gmt'] },
-        { title: 'Time Zones - Meeting Times', path: '/time-zones/meeting-times', keywords: ['meeting', 'times', 'schedule'] },
-        { title: 'Calendar - Monthly', path: '/calendar/monthly', keywords: ['calendar', 'monthly', 'month'] },
-        { title: 'Calendar - Yearly', path: '/calendar/yearly', keywords: ['calendar', 'yearly', 'year'] },
-        { title: 'Calendar - Holiday', path: '/calendar/holiday', keywords: ['holiday', 'calendar', 'festivals'] },
-        { title: 'Calendar - Events', path: '/calendar/events', keywords: ['events', 'calendar'] },
-        { title: 'Calendar - Custom', path: '/calendar/custom', keywords: ['custom', 'calendar'] },
-        { title: 'Calculator - Standard', path: '/calculators/standard', keywords: ['calculator', 'standard', 'math'] },
-        { title: 'Calculator - Time', path: '/calculators/time', keywords: ['time', 'calculator'] },
-        { title: 'Calculator - Date', path: '/calculators/date', keywords: ['date', 'calculator'] },
-        { title: 'Calculator - Duration', path: '/calculators/duration', keywords: ['duration', 'calculator'] },
-        { title: 'Calculator - Business Days', path: '/calculators/business', keywords: ['business', 'days', 'calculator'] },
-        { title: 'Calculator - Currency', path: '/calculators/currency', keywords: ['currency', 'exchange', 'money'] },
-        { title: 'Calculator - Timezone', path: '/calculators/timezone', keywords: ['timezone', 'calculator'] },
-        { title: 'About', path: '/about', keywords: ['about', 'info', 'information'] },
-        { title: 'Contact', path: '/contact', keywords: ['contact', 'email', 'support'] },
-        { title: 'Privacy Policy', path: '/privacy', keywords: ['privacy', 'policy', 'terms'] },
+        { title: 'ISS Tracker', path: '/sun-moon-space/iss', keywords: ['iss', 'space', 'station', 'tracker'] },
+        { title: 'Planets', path: '/sun-moon-space/planets', keywords: ['planets', 'solar', 'system'] },
     ];
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            setShowResults(true);
+    const handleSearch = (path?: string) => {
+        if (path) {
+            router.push(path);
+            setSearchQuery('');
+            setShowSuggestions(false);
+            return;
+        }
+
+        if (!searchQuery.trim()) {
+            setShowSuggestions(true);
+            setFilteredSuggestions(allPages.slice(0, 8));
+            return;
+        }
+        
+        const query = searchQuery.toLowerCase().trim();
+        const matches = allPages.filter(page => 
+            page.keywords.some(keyword => keyword.includes(query)) ||
+            page.title.toLowerCase().includes(query)
+        );
+
+        if (matches.length > 0) {
+            router.push(matches[0].path);
+            setSearchQuery('');
+            setShowSuggestions(false);
+        } else {
+            alert(`No results found for "${searchQuery}"\n\nTry: weather, news, time, calendar, calculator, timer, space`);
         }
     };
 
-    const filteredPages = searchablePages.filter(page => {
-        const query = searchQuery.toLowerCase();
-        return (
-            page.title.toLowerCase().includes(query) ||
-            page.keywords.some(keyword => keyword.toLowerCase().includes(query))
-        );
-    });
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchQuery(value);
 
-    const handlePageClick = (path: string) => {
-        router.push(path);
-        setSearchQuery('');
-        setShowResults(false);
+        if (value.trim().length > 0) {
+            const query = value.toLowerCase().trim();
+            const matches = allPages.filter(page => 
+                page.keywords.some(keyword => keyword.includes(query)) ||
+                page.title.toLowerCase().includes(query)
+            );
+            setFilteredSuggestions(matches.slice(0, 8));
+            setShowSuggestions(true);
+        } else {
+            setFilteredSuggestions(allPages.slice(0, 8));
+            setShowSuggestions(false);
+        }
     };
+
+    const handleButtonClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSearch();
+    };
+
+    const handleInputFocus = () => {
+        setFilteredSuggestions(allPages.slice(0, 8));
+        setShowSuggestions(true);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+                inputRef.current && !inputRef.current.contains(e.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-6 px-4 sm:px-6 shadow-sm relative z-20">
@@ -96,21 +143,28 @@ const SiteHeader = () => {
 
                 {/* Header Search Section - centered and smaller */}
                 <div className="w-full max-w-md relative">
-                    <form onSubmit={handleSearch} className="flex w-full">
+                    <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex w-full" role="search">
                         <input
-                            type="search"
-                            placeholder="Search site..."
+                            ref={inputRef}
+                            type="text"
                             value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setShowResults(e.target.value.trim().length > 0);
+                            onChange={handleInputChange}
+                            onFocus={handleInputFocus}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleSearch();
+                                }
                             }}
-                            onFocus={() => searchQuery.trim() && setShowResults(true)}
+                            placeholder="Search site..."
                             className="flex-grow px-3 py-1.5 text-sm bg-gray-100 border border-gray-300 rounded-l-full focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                            aria-label="Search site"
                         />
                         <button 
-                            type="submit"
-                            className="px-4 py-1.5 bg-[#2C3E50] text-white rounded-r-full hover:bg-slate-700 flex items-center justify-center transition-colors"
+                            type="button"
+                            onClick={handleButtonClick}
+                            className="px-4 py-1.5 bg-[#2C3E50] text-white rounded-r-full hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                            aria-label="Search button"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -118,36 +172,23 @@ const SiteHeader = () => {
                         </button>
                     </form>
 
-                    {/* Search Results Dropdown */}
-                    {showResults && searchQuery.trim() && (
-                        <div className="absolute top-full mt-2 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
-                            {filteredPages.length > 0 ? (
-                                <div className="py-2">
-                                    {filteredPages.map((page, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => handlePageClick(page.path)}
-                                            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm text-gray-800 dark:text-gray-200 transition-colors"
-                                        >
-                                            <div className="font-medium">{page.title}</div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">{page.path}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                                    No results found for "{searchQuery}"
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Click outside to close */}
-                    {showResults && (
+                    {/* Search Suggestions Dropdown */}
+                    {showSuggestions && filteredSuggestions.length > 0 && (
                         <div 
-                            className="fixed inset-0 z-40" 
-                            onClick={() => setShowResults(false)}
-                        />
+                            ref={dropdownRef}
+                            className="absolute top-full mt-2 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                        >
+                            {filteredSuggestions.map((suggestion, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleSearch(suggestion.path)}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-200 dark:border-slate-600 last:border-b-0"
+                                >
+                                    <div className="font-medium text-slate-700 dark:text-white">{suggestion.title}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{suggestion.path}</div>
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
@@ -156,4 +197,3 @@ const SiteHeader = () => {
 };
 
 export default SiteHeader;
-

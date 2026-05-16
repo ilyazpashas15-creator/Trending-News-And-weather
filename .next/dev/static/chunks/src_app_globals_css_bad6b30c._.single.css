@@ -131,6 +131,7 @@
     --color-blue-600: #155dfc;
     --color-blue-700: #1447e6;
     --color-blue-800: #193cb8;
+    --color-blue-900: #1c398e;
     --color-indigo-100: #e0e7ff;
     --color-indigo-400: #7d87ff;
     --color-indigo-600: #4f39f6;
@@ -298,6 +299,7 @@
       --color-blue-600: lab(44.0605% 29.0279 -86.0352);
       --color-blue-700: lab(36.9089% 35.0961 -85.6872);
       --color-blue-800: lab(30.2514% 27.7854 -70.2699);
+      --color-blue-900: lab(26.1542% 15.7545 -51.5504);
       --color-indigo-100: lab(91.6577% 1.04591 -12.7199);
       --color-indigo-400: lab(59.866% 22.4833 -64.4485);
       --color-indigo-600: lab(38.4009% 52.6132 -92.3857);
@@ -769,10 +771,6 @@
 
   .z-20 {
     z-index: 20;
-  }
-
-  .z-40 {
-    z-index: 40;
   }
 
   .z-50 {
@@ -5217,12 +5215,6 @@
   }
 
   @media (min-width: 64rem) {
-    .lg\:grid-cols-10 {
-      grid-template-columns: repeat(10, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 64rem) {
     .lg\:flex-row {
       flex-direction: row;
     }
@@ -5280,6 +5272,12 @@
   }
 
   @media (prefers-color-scheme: dark) {
+    .dark\:border-slate-600 {
+      border-color: var(--color-slate-600);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
     .dark\:border-slate-700 {
       border-color: var(--color-slate-700);
     }
@@ -5294,6 +5292,18 @@
   @media (prefers-color-scheme: dark) {
     .dark\:bg-\[\#0d1929\] {
       background-color: #0d1929;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .dark\:bg-blue-900\/20 {
+      background-color: #1c398e33;
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .dark\:bg-blue-900\/20 {
+        background-color: color-mix(in oklab, var(--color-blue-900) 20%, transparent);
+      }
     }
   }
 
@@ -5362,6 +5372,12 @@
   }
 
   @media (prefers-color-scheme: dark) {
+    .dark\:text-blue-200 {
+      color: var(--color-blue-200);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
     .dark\:text-blue-400 {
       color: var(--color-blue-400);
     }
@@ -5400,6 +5416,12 @@
   @media (prefers-color-scheme: dark) {
     .dark\:text-red-200 {
       color: var(--color-red-200);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .dark\:text-slate-400 {
+      color: var(--color-slate-400);
     }
   }
 
@@ -5589,15 +5611,17 @@ input:checked + .slider .moon {
 }
 
 .dropdown-item {
-  color: var(--text-color) !important;
+  color: #1a1a1a !important;
   width: 100% !important;
   padding: 12px 16px !important;
+  font-weight: 500 !important;
   text-decoration: none !important;
   display: block !important;
 }
 
 .dropdown-item:hover {
-  background-color: var(--border-color) !important;
+  color: #1e40af !important;
+  background-color: #3b82f61a !important;
 }
 
 :root {
@@ -6112,11 +6136,12 @@ body {
 }
 
 .dark .dropdown-item {
-  color: var(--text-color);
+  color: #e5e7eb !important;
 }
 
 .dark .dropdown-item:hover {
-  background-color: var(--border-color);
+  color: #93c5fd !important;
+  background-color: #3b82f633 !important;
 }
 
 .dark .original-weather-search-with-icon {

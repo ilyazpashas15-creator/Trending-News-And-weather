@@ -76,14 +76,10 @@ const login = async (credentials)=>{
         setTimeout(()=>{
             // Simulate API call
             if (credentials.email && credentials.password) {
-                // Extract name from email (before @ symbol)
-                const emailUsername = credentials.email.split('@')[0];
-                // Capitalize first letter and replace dots/underscores with spaces
-                const displayName = emailUsername.replace(/[._]/g, ' ').split(' ').map((word)=>word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
                 const mockUser = {
                     id: '1',
                     email: credentials.email,
-                    name: displayName,
+                    name: 'John Doe',
                     favoriteLocations: [
                         'London',
                         'New York'
@@ -288,7 +284,7 @@ const ToastProvider = ({ children })=>{
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "fixed top-4 right-4 z-[100] space-y-2",
                 children: toasts.map((toast)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: `p-4 rounded-lg text-white shadow-lg animate-fadeInSlideIn ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : toast.type === 'warning' ? 'bg-blue-500' : 'bg-blue-500'}`,
+                        className: `p-4 rounded-lg text-white shadow-lg animate-fadeInSlideIn ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : toast.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'}`,
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "flex items-center",
                             children: [

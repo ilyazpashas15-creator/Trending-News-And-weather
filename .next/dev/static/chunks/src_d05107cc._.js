@@ -744,7 +744,7 @@ function MonthlyCalendar() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "bg-[#1a2942] border-2 border-yellow-400 rounded-lg shadow-md p-4 mb-6",
+                className: "bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-4 mb-6",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "flex flex-col sm:flex-row items-center justify-between mb-4 gap-4",
                     children: [
@@ -753,7 +753,7 @@ function MonthlyCalendar() {
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                     onClick: goToPreviousMonth,
-                                    className: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition border-2 border-yellow-400",
+                                    className: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition border-2 border-blue-400",
                                     "aria-label": "Previous Month",
                                     children: "← Previous"
                                 }, void 0, false, {
@@ -782,7 +782,7 @@ function MonthlyCalendar() {
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                     onClick: goToNextMonth,
-                                    className: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition border-2 border-yellow-400",
+                                    className: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition border-2 border-blue-400",
                                     "aria-label": "Next Month",
                                     children: "Next →"
                                 }, void 0, false, {
@@ -798,7 +798,7 @@ function MonthlyCalendar() {
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                             onClick: goToToday,
-                            className: "px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition font-semibold border-2 border-yellow-400",
+                            className: "px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition font-semibold border-2 border-blue-400",
                             children: "Today"
                         }, void 0, false, {
                             fileName: "[project]/src/components/calendar/MonthlyCalendar.tsx",
@@ -822,12 +822,12 @@ function MonthlyCalendar() {
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "lg:col-span-2",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-[#1a2942] border-2 border-yellow-400 rounded-lg shadow-md p-4",
+                            className: "bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-4",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "grid grid-cols-7 gap-2 mb-2",
                                     children: dayNames.map((day)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "text-center font-bold text-white py-2 bg-[#0d1929] rounded border border-yellow-400",
+                                            className: "text-center font-bold text-white py-2 bg-[#0d1929] rounded border border-blue-400",
                                             children: day
                                         }, day, false, {
                                             fileName: "[project]/src/components/calendar/MonthlyCalendar.tsx",
@@ -848,8 +848,8 @@ function MonthlyCalendar() {
                                             className: `
                       min-h-[90px] flex flex-col p-2 rounded border-2 cursor-pointer
                       transition-all hover:shadow-lg relative
-                      ${dayObj.isCurrentMonth ? 'border-yellow-400 bg-[#0d1929] text-white font-semibold' : 'border-gray-600 bg-[#0a1420] text-gray-500'}
-                      ${dayObj.isToday ? 'bg-blue-500 text-white border-yellow-400 font-bold hover:bg-blue-600 ring-2 ring-yellow-400' : hasHoliday || specialSat ? 'hover:bg-[#2a3f5f]' : 'hover:bg-[#1a2942]'}
+                      ${dayObj.isCurrentMonth ? 'border-blue-400 bg-[#0d1929] text-white font-semibold' : 'border-gray-600 bg-[#0a1420] text-gray-500'}
+                      ${dayObj.isToday ? 'bg-blue-500 text-white border-blue-400 font-bold hover:bg-blue-600 ring-2 ring-blue-400' : hasHoliday || specialSat ? 'hover:bg-[#2a3f5f]' : 'hover:bg-[#1a2942]'}
                       ${specialSat ? 'bg-purple-900 border-purple-400' : ''}
                     `,
                                             title: dayObj.holidays.map((h)=>`${h.name} (${h.country})`).join('\n'),
@@ -944,10 +944,10 @@ function MonthlyCalendar() {
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "lg:col-span-1",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-[#1a2942] border-2 border-yellow-400 rounded-lg shadow-md p-2.5 sticky top-6",
+                            className: "bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-2.5 sticky top-6",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                    className: "text-base font-bold text-white mb-2 text-center border-b-2 border-yellow-400 pb-1.5",
+                                    className: "text-base font-bold text-white mb-2 text-center border-b-2 border-blue-400 pb-1.5",
                                     children: "📅 This Month's Events"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/calendar/MonthlyCalendar.tsx",
@@ -1181,7 +1181,7 @@ function MonthlyCalendar() {
                                 className: "flex items-center gap-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "w-6 h-6 bg-blue-500 rounded border-2 border-yellow-400 ring-2 ring-yellow-400"
+                                        className: "w-6 h-6 bg-blue-500 rounded border-2 border-blue-400 ring-2 ring-blue-400"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/calendar/MonthlyCalendar.tsx",
                                         lineNumber: 342,
@@ -1204,7 +1204,7 @@ function MonthlyCalendar() {
                                 className: "flex items-center gap-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "w-6 h-6 bg-[#0d1929] rounded border-2 border-yellow-400"
+                                        className: "w-6 h-6 bg-[#0d1929] rounded border-2 border-blue-400"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/calendar/MonthlyCalendar.tsx",
                                         lineNumber: 346,
@@ -1276,7 +1276,7 @@ function MonthlyCalendar() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "bg-[#1a2942] border-2 border-yellow-400 rounded-lg shadow-md p-4",
+                        className: "bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-4",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                 className: "text-lg font-bold mb-3 text-center text-white",

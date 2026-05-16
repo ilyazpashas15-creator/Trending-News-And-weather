@@ -222,14 +222,17 @@ input:checked+.slider .moon {
   display: block !important;
   padding: 12px 16px !important;
   text-decoration: none !important;
-  color: var(--text-color) !important;
-  /* Use theme variable */
+  color: #1a1a1a !important;
+  /* Dark text for light background */
   width: 100% !important;
+  font-weight: 500 !important;
 }
 
 .dropdown-item:hover {
-  background-color: var(--border-color) !important;
-  /* Theme-based hover */
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  /* Light blue hover */
+  color: #1e40af !important;
+  /* Darker blue on hover */
 }
 
 /* --- Theme Variables --- */
@@ -904,11 +907,15 @@ body {
 }
 
 .dark .dropdown-item {
-  color: var(--text-color);
+  color: #e5e7eb !important;
+  /* Light gray text for dark mode */
 }
 
 .dark .dropdown-item:hover {
-  background-color: var(--border-color);
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  /* Slightly brighter blue for dark mode */
+  color: #93c5fd !important;
+  /* Light blue on hover */
 }
 
 /* Dark theme for search bars */

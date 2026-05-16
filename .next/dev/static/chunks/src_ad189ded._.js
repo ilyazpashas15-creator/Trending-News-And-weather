@@ -1782,128 +1782,238 @@ var _s = __turbopack_context__.k.signature();
 const SiteHeader = ()=>{
     _s();
     const [searchQuery, setSearchQuery] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
-    const [showResults, setShowResults] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [showSuggestions, setShowSuggestions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [filteredSuggestions, setFilteredSuggestions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
-    // Define searchable pages with keywords
-    const searchablePages = [
+    const dropdownRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const inputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const allPages = [
         {
-            title: 'Home',
-            path: '/',
+            title: 'Weather Forecast',
+            path: '/weather',
             keywords: [
-                'home',
-                'main',
+                'weather',
+                'forecast',
+                'temperature',
+                'rain',
+                'sun'
+            ]
+        },
+        {
+            title: '5 Day Forecast',
+            path: '/weather/5day',
+            keywords: [
+                '5 day',
+                'forecast',
+                'weather',
+                'week'
+            ]
+        },
+        {
+            title: '10 Day Forecast',
+            path: '/weather/10day',
+            keywords: [
+                '10 day',
+                'forecast',
+                'weather'
+            ]
+        },
+        {
+            title: 'Hourly Weather',
+            path: '/weather/hourly',
+            keywords: [
+                'hourly',
+                'weather',
+                'hour'
+            ]
+        },
+        {
+            title: 'Weather Alerts',
+            path: '/weather/alerts',
+            keywords: [
+                'alerts',
+                'warning',
+                'weather'
+            ]
+        },
+        {
+            title: 'Weather Maps',
+            path: '/weather/maps',
+            keywords: [
+                'maps',
+                'weather',
+                'radar'
+            ]
+        },
+        {
+            title: 'Breaking News',
+            path: '/news/breaking',
+            keywords: [
+                'news',
+                'breaking',
+                'latest'
+            ]
+        },
+        {
+            title: 'World News',
+            path: '/news/world',
+            keywords: [
+                'world',
+                'news',
+                'international'
+            ]
+        },
+        {
+            title: 'Local News',
+            path: '/news/local',
+            keywords: [
+                'local',
+                'news',
+                'nearby'
+            ]
+        },
+        {
+            title: 'Weather News',
+            path: '/news/weather',
+            keywords: [
                 'weather',
                 'news'
             ]
         },
         {
-            title: 'Weather - Current',
-            path: '/weather',
-            keywords: [
-                'current',
-                'weather',
-                'now',
-                'today'
-            ]
-        },
-        {
-            title: 'Weather - 5 Day Forecast',
-            path: '/weather/5day',
-            keywords: [
-                '5 day',
-                'forecast',
-                'week',
-                'future'
-            ]
-        },
-        {
-            title: 'Weather - 10 Day Forecast',
-            path: '/weather/10day',
-            keywords: [
-                '10 day',
-                'forecast',
-                'extended'
-            ]
-        },
-        {
-            title: 'Weather - Hourly',
-            path: '/weather/hourly',
-            keywords: [
-                'hourly',
-                'hour',
-                'today'
-            ]
-        },
-        {
-            title: 'Weather - Maps',
-            path: '/weather/maps',
-            keywords: [
-                'maps',
-                'radar',
-                'satellite'
-            ]
-        },
-        {
-            title: 'Weather - Alerts',
-            path: '/weather/alerts',
-            keywords: [
-                'alerts',
-                'warnings',
-                'severe'
-            ]
-        },
-        {
-            title: 'News - Breaking',
-            path: '/news/breaking',
-            keywords: [
-                'breaking',
-                'news',
-                'latest'
-            ]
-        },
-        {
-            title: 'News - Local',
-            path: '/news/local',
-            keywords: [
-                'local',
-                'news',
-                'city'
-            ]
-        },
-        {
-            title: 'News - World',
-            path: '/news/world',
-            keywords: [
-                'world',
-                'international',
-                'global'
-            ]
-        },
-        {
-            title: 'News - Weather News',
-            path: '/news/weather',
-            keywords: [
-                'weather news',
-                'climate'
-            ]
-        },
-        {
-            title: 'News - Archive',
+            title: 'News Archive',
             path: '/news/archive',
             keywords: [
                 'archive',
-                'old',
-                'past'
+                'news',
+                'old'
             ]
         },
         {
-            title: 'Sun, Moon & Space',
-            path: '/sun-moon-space',
+            title: 'World Clock',
+            path: '/world-clock/converter',
             keywords: [
-                'sun',
-                'moon',
-                'space',
-                'astronomy'
+                'world',
+                'clock',
+                'time',
+                'converter'
+            ]
+        },
+        {
+            title: 'Time Zone Converter',
+            path: '/time-zones/converter',
+            keywords: [
+                'timezone',
+                'converter',
+                'time'
+            ]
+        },
+        {
+            title: 'All Time Zones',
+            path: '/time-zones/all',
+            keywords: [
+                'timezone',
+                'all',
+                'list'
+            ]
+        },
+        {
+            title: 'Monthly Calendar',
+            path: '/calendar/monthly',
+            keywords: [
+                'calendar',
+                'month',
+                'monthly'
+            ]
+        },
+        {
+            title: 'Yearly Calendar',
+            path: '/calendar/yearly',
+            keywords: [
+                'calendar',
+                'year',
+                'yearly'
+            ]
+        },
+        {
+            title: 'Holiday Calendar',
+            path: '/calendar/holiday',
+            keywords: [
+                'holiday',
+                'calendar',
+                'vacation'
+            ]
+        },
+        {
+            title: 'Standard Calculator',
+            path: '/calculators/standard',
+            keywords: [
+                'calculator',
+                'math',
+                'calculate'
+            ]
+        },
+        {
+            title: 'Date Calculator',
+            path: '/calculators/date',
+            keywords: [
+                'date',
+                'calculator',
+                'days'
+            ]
+        },
+        {
+            title: 'Time Calculator',
+            path: '/calculators/time',
+            keywords: [
+                'time',
+                'calculator',
+                'hours'
+            ]
+        },
+        {
+            title: 'Currency Calculator',
+            path: '/calculators/currency',
+            keywords: [
+                'currency',
+                'money',
+                'exchange'
+            ]
+        },
+        {
+            title: 'Stopwatch',
+            path: '/timers/stopwatch',
+            keywords: [
+                'stopwatch',
+                'timer',
+                'stop'
+            ]
+        },
+        {
+            title: 'Countdown Timer',
+            path: '/timers/countdown',
+            keywords: [
+                'countdown',
+                'timer',
+                'count'
+            ]
+        },
+        {
+            title: 'Alarm Clock',
+            path: '/timers/alarm',
+            keywords: [
+                'alarm',
+                'clock',
+                'wake'
+            ]
+        },
+        {
+            title: 'Clock',
+            path: '/timers/clock',
+            keywords: [
+                'clock',
+                'time',
+                'current'
             ]
         },
         {
@@ -1911,9 +2021,9 @@ const SiteHeader = ()=>{
             path: '/sun-moon-space/nasa-apod',
             keywords: [
                 'nasa',
-                'apod',
+                'space',
                 'picture',
-                'space'
+                'astronomy'
             ]
         },
         {
@@ -1935,29 +2045,12 @@ const SiteHeader = ()=>{
             ]
         },
         {
-            title: 'Solar Eclipse',
-            path: '/sun-moon-space/solar-eclipse',
-            keywords: [
-                'solar',
-                'eclipse',
-                'sun'
-            ]
-        },
-        {
-            title: 'Lunar Eclipse',
-            path: '/sun-moon-space/lunar-eclipse',
-            keywords: [
-                'lunar',
-                'eclipse',
-                'moon'
-            ]
-        },
-        {
             title: 'ISS Tracker',
             path: '/sun-moon-space/iss',
             keywords: [
                 'iss',
-                'space station',
+                'space',
+                'station',
                 'tracker'
             ]
         },
@@ -1966,197 +2059,70 @@ const SiteHeader = ()=>{
             path: '/sun-moon-space/planets',
             keywords: [
                 'planets',
-                'solar system'
-            ]
-        },
-        {
-            title: 'Time Zones - All',
-            path: '/time-zones/all',
-            keywords: [
-                'time zones',
-                'all',
-                'world time'
-            ]
-        },
-        {
-            title: 'Time Zones - By Continent',
-            path: '/time-zones/continent',
-            keywords: [
-                'continent',
-                'time zones'
-            ]
-        },
-        {
-            title: 'Time Zones - By Country',
-            path: '/time-zones/country',
-            keywords: [
-                'country',
-                'time zones'
-            ]
-        },
-        {
-            title: 'Time Zones - Offsets',
-            path: '/time-zones/offsets',
-            keywords: [
-                'offsets',
-                'utc',
-                'gmt'
-            ]
-        },
-        {
-            title: 'Time Zones - Meeting Times',
-            path: '/time-zones/meeting-times',
-            keywords: [
-                'meeting',
-                'times',
-                'schedule'
-            ]
-        },
-        {
-            title: 'Calendar - Monthly',
-            path: '/calendar/monthly',
-            keywords: [
-                'calendar',
-                'monthly',
-                'month'
-            ]
-        },
-        {
-            title: 'Calendar - Yearly',
-            path: '/calendar/yearly',
-            keywords: [
-                'calendar',
-                'yearly',
-                'year'
-            ]
-        },
-        {
-            title: 'Calendar - Holiday',
-            path: '/calendar/holiday',
-            keywords: [
-                'holiday',
-                'calendar',
-                'festivals'
-            ]
-        },
-        {
-            title: 'Calendar - Events',
-            path: '/calendar/events',
-            keywords: [
-                'events',
-                'calendar'
-            ]
-        },
-        {
-            title: 'Calendar - Custom',
-            path: '/calendar/custom',
-            keywords: [
-                'custom',
-                'calendar'
-            ]
-        },
-        {
-            title: 'Calculator - Standard',
-            path: '/calculators/standard',
-            keywords: [
-                'calculator',
-                'standard',
-                'math'
-            ]
-        },
-        {
-            title: 'Calculator - Time',
-            path: '/calculators/time',
-            keywords: [
-                'time',
-                'calculator'
-            ]
-        },
-        {
-            title: 'Calculator - Date',
-            path: '/calculators/date',
-            keywords: [
-                'date',
-                'calculator'
-            ]
-        },
-        {
-            title: 'Calculator - Duration',
-            path: '/calculators/duration',
-            keywords: [
-                'duration',
-                'calculator'
-            ]
-        },
-        {
-            title: 'Calculator - Business Days',
-            path: '/calculators/business',
-            keywords: [
-                'business',
-                'days',
-                'calculator'
-            ]
-        },
-        {
-            title: 'Calculator - Currency',
-            path: '/calculators/currency',
-            keywords: [
-                'currency',
-                'exchange',
-                'money'
-            ]
-        },
-        {
-            title: 'Calculator - Timezone',
-            path: '/calculators/timezone',
-            keywords: [
-                'timezone',
-                'calculator'
-            ]
-        },
-        {
-            title: 'About',
-            path: '/about',
-            keywords: [
-                'about',
-                'info',
-                'information'
-            ]
-        },
-        {
-            title: 'Contact',
-            path: '/contact',
-            keywords: [
-                'contact',
-                'email',
-                'support'
-            ]
-        },
-        {
-            title: 'Privacy Policy',
-            path: '/privacy',
-            keywords: [
-                'privacy',
-                'policy',
-                'terms'
+                'solar',
+                'system'
             ]
         }
     ];
-    const handleSearch = (e)=>{
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            setShowResults(true);
+    const handleSearch = (path)=>{
+        if (path) {
+            router.push(path);
+            setSearchQuery('');
+            setShowSuggestions(false);
+            return;
+        }
+        if (!searchQuery.trim()) {
+            setShowSuggestions(true);
+            setFilteredSuggestions(allPages.slice(0, 8));
+            return;
+        }
+        const query = searchQuery.toLowerCase().trim();
+        const matches = allPages.filter((page)=>page.keywords.some((keyword)=>keyword.includes(query)) || page.title.toLowerCase().includes(query));
+        if (matches.length > 0) {
+            router.push(matches[0].path);
+            setSearchQuery('');
+            setShowSuggestions(false);
+        } else {
+            alert(`No results found for "${searchQuery}"\n\nTry: weather, news, time, calendar, calculator, timer, space`);
         }
     };
-    const filteredPages = searchablePages.filter((page)=>{
-        const query = searchQuery.toLowerCase();
-        return page.title.toLowerCase().includes(query) || page.keywords.some((keyword)=>keyword.toLowerCase().includes(query));
-    });
-    const handlePageClick = (path)=>{
-        router.push(path);
-        setSearchQuery('');
-        setShowResults(false);
+    const handleInputChange = (e)=>{
+        const value = e.target.value;
+        setSearchQuery(value);
+        if (value.trim().length > 0) {
+            const query = value.toLowerCase().trim();
+            const matches = allPages.filter((page)=>page.keywords.some((keyword)=>keyword.includes(query)) || page.title.toLowerCase().includes(query));
+            setFilteredSuggestions(matches.slice(0, 8));
+            setShowSuggestions(true);
+        } else {
+            setFilteredSuggestions(allPages.slice(0, 8));
+            setShowSuggestions(false);
+        }
     };
+    const handleButtonClick = (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        handleSearch();
+    };
+    const handleInputFocus = ()=>{
+        setFilteredSuggestions(allPages.slice(0, 8));
+        setShowSuggestions(true);
+    };
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "SiteHeader.useEffect": ()=>{
+            const handleClickOutside = {
+                "SiteHeader.useEffect.handleClickOutside": (e)=>{
+                    if (dropdownRef.current && !dropdownRef.current.contains(e.target) && inputRef.current && !inputRef.current.contains(e.target)) {
+                        setShowSuggestions(false);
+                    }
+                }
+            }["SiteHeader.useEffect.handleClickOutside"];
+            document.addEventListener('mousedown', handleClickOutside);
+            return ({
+                "SiteHeader.useEffect": ()=>document.removeEventListener('mousedown', handleClickOutside)
+            })["SiteHeader.useEffect"];
+        }
+    }["SiteHeader.useEffect"], []);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-6 px-4 sm:px-6 shadow-sm relative z-20",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2174,41 +2140,41 @@ const SiteHeader = ()=>{
                                         className: "absolute inset-0 border-4 border-blue-400 rounded-full border-t-transparent animate-spin-slow"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 84,
+                                        lineNumber: 131,
                                         columnNumber: 29
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "absolute inset-2 bg-blue-600 rounded-full"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 85,
+                                        lineNumber: 132,
                                         columnNumber: 29
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "absolute inset-4 bg-white rounded-full"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 86,
+                                        lineNumber: 133,
                                         columnNumber: 29
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "absolute top-1/2 left-1/2 w-3 h-0.5 bg-slate-800 -translate-y-1/2 origin-left rotate-45"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 88,
+                                        lineNumber: 135,
                                         columnNumber: 29
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "absolute top-1/2 left-1/2 w-2 h-0.5 bg-slate-800 -translate-y-1/2 origin-left -rotate-90"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 89,
+                                        lineNumber: 136,
                                         columnNumber: 29
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                lineNumber: 83,
+                                lineNumber: 130,
                                 columnNumber: 25
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -2220,51 +2186,62 @@ const SiteHeader = ()=>{
                                         children: "And News"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 139,
                                         columnNumber: 40
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                lineNumber: 91,
+                                lineNumber: 138,
                                 columnNumber: 25
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                        lineNumber: 81,
+                        lineNumber: 128,
                         columnNumber: 21
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                    lineNumber: 80,
+                    lineNumber: 127,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-full max-w-md relative",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
-                            onSubmit: handleSearch,
+                            onSubmit: (e)=>{
+                                e.preventDefault();
+                                handleSearch();
+                            },
                             className: "flex w-full",
+                            role: "search",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                    type: "search",
-                                    placeholder: "Search site...",
+                                    ref: inputRef,
+                                    type: "text",
                                     value: searchQuery,
-                                    onChange: (e)=>{
-                                        setSearchQuery(e.target.value);
-                                        setShowResults(e.target.value.trim().length > 0);
+                                    onChange: handleInputChange,
+                                    onFocus: handleInputFocus,
+                                    onKeyDown: (e)=>{
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSearch();
+                                        }
                                     },
-                                    onFocus: ()=>searchQuery.trim() && setShowResults(true),
-                                    className: "flex-grow px-3 py-1.5 text-sm bg-gray-100 border border-gray-300 rounded-l-full focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                    placeholder: "Search site...",
+                                    className: "flex-grow px-3 py-1.5 text-sm bg-gray-100 border border-gray-300 rounded-l-full focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white",
+                                    "aria-label": "Search site"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                    lineNumber: 100,
+                                    lineNumber: 147,
                                     columnNumber: 25
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                    type: "submit",
-                                    className: "px-4 py-1.5 bg-[#2C3E50] text-white rounded-r-full hover:bg-slate-700 flex items-center justify-center transition-colors",
+                                    type: "button",
+                                    onClick: handleButtonClick,
+                                    className: "px-4 py-1.5 bg-[#2C3E50] text-white rounded-r-full hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer",
+                                    "aria-label": "Search button",
                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         className: "h-4 w-4",
@@ -2278,103 +2255,78 @@ const SiteHeader = ()=>{
                                             d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                            lineNumber: 116,
+                                            lineNumber: 170,
                                             columnNumber: 33
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 115,
+                                        lineNumber: 169,
                                         columnNumber: 29
                                     }, ("TURBOPACK compile-time value", void 0))
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                    lineNumber: 111,
+                                    lineNumber: 163,
                                     columnNumber: 25
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                            lineNumber: 99,
+                            lineNumber: 146,
                             columnNumber: 21
                         }, ("TURBOPACK compile-time value", void 0)),
-                        showResults && searchQuery.trim() && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        showSuggestions && filteredSuggestions.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            ref: dropdownRef,
                             className: "absolute top-full mt-2 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50",
-                            children: filteredPages.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "py-2",
-                                children: filteredPages.map((page, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                        onClick: ()=>handlePageClick(page.path),
-                                        className: "w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm text-gray-800 dark:text-gray-200 transition-colors",
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "font-medium",
-                                                children: page.title
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                                lineNumber: 132,
-                                                columnNumber: 45
-                                            }, ("TURBOPACK compile-time value", void 0)),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "text-xs text-gray-500 dark:text-gray-400",
-                                                children: page.path
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                                lineNumber: 133,
-                                                columnNumber: 45
-                                            }, ("TURBOPACK compile-time value", void 0))
-                                        ]
-                                    }, index, true, {
-                                        fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                        lineNumber: 127,
-                                        columnNumber: 41
-                                    }, ("TURBOPACK compile-time value", void 0)))
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                lineNumber: 125,
-                                columnNumber: 33
-                            }, ("TURBOPACK compile-time value", void 0)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "px-4 py-3 text-sm text-gray-500 dark:text-gray-400",
-                                children: [
-                                    'No results found for "',
-                                    searchQuery,
-                                    '"'
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                                lineNumber: 138,
-                                columnNumber: 33
-                            }, ("TURBOPACK compile-time value", void 0))
+                            children: filteredSuggestions.map((suggestion, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: ()=>handleSearch(suggestion.path),
+                                    className: "w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-200 dark:border-slate-600 last:border-b-0",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "font-medium text-slate-700 dark:text-white",
+                                            children: suggestion.title
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/ui/SiteHeader.tsx",
+                                            lineNumber: 187,
+                                            columnNumber: 37
+                                        }, ("TURBOPACK compile-time value", void 0)),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "text-xs text-slate-500 dark:text-slate-400",
+                                            children: suggestion.path
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/ui/SiteHeader.tsx",
+                                            lineNumber: 188,
+                                            columnNumber: 37
+                                        }, ("TURBOPACK compile-time value", void 0))
+                                    ]
+                                }, index, true, {
+                                    fileName: "[project]/src/components/ui/SiteHeader.tsx",
+                                    lineNumber: 182,
+                                    columnNumber: 33
+                                }, ("TURBOPACK compile-time value", void 0)))
                         }, void 0, false, {
                             fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                            lineNumber: 123,
-                            columnNumber: 25
-                        }, ("TURBOPACK compile-time value", void 0)),
-                        showResults && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "fixed inset-0 z-40",
-                            onClick: ()=>setShowResults(false)
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                            lineNumber: 147,
+                            lineNumber: 177,
                             columnNumber: 25
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/ui/SiteHeader.tsx",
-                    lineNumber: 98,
+                    lineNumber: 145,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/ui/SiteHeader.tsx",
-            lineNumber: 78,
+            lineNumber: 125,
             columnNumber: 13
         }, ("TURBOPACK compile-time value", void 0))
     }, void 0, false, {
         fileName: "[project]/src/components/ui/SiteHeader.tsx",
-        lineNumber: 77,
+        lineNumber: 124,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
-_s(SiteHeader, "3jDE/Lj+XopmcxX9UWNI+dN+mQ8=", false, function() {
+_s(SiteHeader, "sFD4mAsaHffUtlogjqv0ATRnxv4=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];

@@ -44,18 +44,28 @@ export default function TenDayForecastPage() {
   }, [city, getWeatherByCity]);
 
   // Group forecast data by day (since the API returns 3-hourly data)
+  // Note: Free OpenWeather API only provides 5 days of forecast data
   const dailyForecast = forecastData?.list
     // Filter to get one entry per day (around midday)
     .filter((item, index) => {
       const date = new Date(item.dt * 1000);
       return date.getUTCHours() === 12; // Around midday
     })
-    .slice(0, 10) || [];
+    .slice(0, 5) || []; // API limitation: only 5 days available
 
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="flex justify-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 text-center border-2 border-blue-300 p-4 rounded-lg">10-Day Forecast</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-white text-center border-2 border-blue-300 p-4 rounded-lg">10-Day Forecast</h1>
+      </div>
+
+      {/* API Limitation Notice */}
+      <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 px-4 py-3 rounded-lg">
+        <p className="text-sm">
+          <strong>Note:</strong> The free OpenWeather API provides 5-day forecast data. 
+          For extended 10-day forecasts, a premium API subscription would be required.
+          Showing available 5-day forecast below.
+        </p>
       </div>
       
       <div className="mb-6">
@@ -97,7 +107,7 @@ export default function TenDayForecastPage() {
       )}
 
       {forecastData && !loading && !error && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {dailyForecast.map((day, index) => (
             <CompactForecastCard key={index} forecast={day} />
           ))}
