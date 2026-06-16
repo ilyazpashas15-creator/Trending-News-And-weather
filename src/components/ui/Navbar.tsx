@@ -74,13 +74,15 @@ const Navbar = () => {
     ],
   };
 
-  // State for open dropdown
+  // State for open dropdown (desktop)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  // State for mobile menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSubmenu, setMobileSubmenu] = useState<string | null>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = (menu: string) => {
-    // Clear any pending close timeout
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -89,17 +91,18 @@ const Navbar = () => {
   };
 
   const handleMouseLeave = () => {
-    // Add a small delay before closing to allow moving to dropdown
     closeTimeoutRef.current = setTimeout(() => {
       setOpenDropdown(null);
     }, 150);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown / mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (navbarRef.current && !navbarRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
+        setMobileMenuOpen(false);
+        setMobileSubmenu(null);
       }
     };
 
@@ -112,241 +115,166 @@ const Navbar = () => {
     };
   }, []);
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(prev => !prev);
+    setMobileSubmenu(null);
+  };
+
+  const toggleMobileSubmenu = (menu: string) => {
+    setMobileSubmenu(prev => (prev === menu ? null : menu));
+  };
+
+  const handleMobileLinkClick = () => {
+    setMobileMenuOpen(false);
+    setMobileSubmenu(null);
+  };
+
+  const categoryKeys = Object.keys(dropdownData);
+
   return (
     <div ref={navbarRef}>
-      <style jsx>{`
-      `}</style>
-      <nav className="nav-gradient px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6 flex-1">
-          {/* News Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('News')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              News ▼
-            </button>
-            {openDropdown === 'News' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData.News.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* World Clock Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('World Clock')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              World Clock ▼
-            </button>
-            {openDropdown === 'World Clock' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData['World Clock'].map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Time Zones Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('Time Zones')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              Time Zones ▼
-            </button>
-            {openDropdown === 'Time Zones' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData['Time Zones'].map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Calendar Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('Calendar')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              Calendar ▼
-            </button>
-            {openDropdown === 'Calendar' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData.Calendar.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Weather Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('Weather')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              Weather ▼
-            </button>
-            {openDropdown === 'Weather' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData.Weather.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Timers Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('Timers')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              Timers ▼
-            </button>
-            {openDropdown === 'Timers' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData.Timers.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Calculators Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('Calculators')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              Calculators ▼
-            </button>
-            {openDropdown === 'Calculators' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData.Calculators.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Sun, Moon & Space Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => handleMouseEnter('Sun, Moon & Space')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <button className="hover:text-blue-200 flex items-center">
-              Sun, Moon & Space ▼
-            </button>
-            {openDropdown === 'Sun, Moon & Space' && (
-              <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
-                {dropdownData['Sun, Moon & Space'].map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className="dropdown-item"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+      <nav className="nav-gradient px-4 sm:px-6 py-4 flex items-center justify-between">
+        {/* Desktop navigation items - hidden on mobile */}
+        <div className="hidden lg:flex items-center gap-6 flex-1">
+          {categoryKeys.map((category) => (
+            <div
+              key={category}
+              className="relative"
+              onMouseEnter={() => handleMouseEnter(category)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button className="hover:text-blue-200 flex items-center whitespace-nowrap">
+                {category} ▼
+              </button>
+              {openDropdown === category && (
+                <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
+                  {dropdownData[category as keyof typeof dropdownData].map((item, index) => (
+                    <Link
+                      key={index}
+                      href={item.href}
+                      className="dropdown-item"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Right side of navigation */}
-        <div className="flex items-center gap-3">
-
-          {/* Auth Buttons */}
-          {!isAuthenticated ? (
-            <>
-              <button 
+        {/* Right side: desktop auth buttons + theme switcher + hamburger */}
+        <div className="flex items-center gap-3 ml-auto lg:ml-0">
+          {/* Desktop auth buttons - hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-3">
+            {!isAuthenticated ? (
+              <button
                 onClick={() => router.push('/login')}
                 className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
               >
                 Login
               </button>
-            </>
-          ) : (
-            <>
-              <button 
-                onClick={() => router.push('/profile')}
-                className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
-              >
-                Profile
-              </button>
-              <button 
-                onClick={async () => {
-                  await logout();
-                  router.push('/');
-                }}
-                className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
-              >
-                Logout
-              </button>
-            </>
-          )}
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    router.push('/');
+                  }}
+                  className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
 
           <ThemeSwitcher />
+
+          {/* Hamburger button - visible only on mobile */}
+          <button
+            onClick={toggleMobileMenu}
+            className="lg:hidden flex flex-col items-center justify-center w-8 h-8 gap-1.5 text-white"
+            aria-label="Toggle navigation menu"
+          >
+            <span className={`block w-6 h-0.5 bg-white transition-transform duration-200 ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block w-6 h-0.5 bg-white transition-opacity duration-200 ${mobileMenuOpen ? 'opacity-0' : ''}`} />
+            <span className={`block w-6 h-0.5 bg-white transition-transform duration-200 ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
         </div>
       </nav>
+
+      {/* Mobile menu panel */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden mobile-menu">
+          <div className="nav-gradient px-4 py-2 border-t border-white/10">
+            {categoryKeys.map((category) => (
+              <div key={category} className="border-b border-white/10 last:border-b-0">
+                <button
+                  onClick={() => toggleMobileSubmenu(category)}
+                  className="w-full flex items-center justify-between px-2 py-3 text-white hover:text-blue-200 text-left"
+                >
+                  <span className="font-medium">{category}</span>
+                  <span className={`transition-transform duration-200 text-sm ${mobileSubmenu === category ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                {mobileSubmenu === category && (
+                  <div className="pb-2 pl-4">
+                    {dropdownData[category as keyof typeof dropdownData].map((item, index) => (
+                      <Link
+                        key={index}
+                        href={item.href}
+                        onClick={handleMobileLinkClick}
+                        className="block px-2 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Mobile auth buttons */}
+            <div className="flex flex-col gap-2 pt-3 pb-2">
+              {!isAuthenticated ? (
+                <button
+                  onClick={() => { router.push('/login'); handleMobileLinkClick(); }}
+                  className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors text-center"
+                >
+                  Login
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => { router.push('/profile'); handleMobileLinkClick(); }}
+                    className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors text-center"
+                  >
+                    Profile
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      router.push('/');
+                      handleMobileLinkClick();
+                    }}
+                    className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors text-center"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
