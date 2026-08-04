@@ -121,7 +121,7 @@ const SiteHeader = () => {
     }, []);
 
     return (
-        <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 py-6 px-4 sm:px-6 shadow-sm relative z-20">
+        <div className="bg-gradient-to-b from-[#2C3E50] to-[#34495E] dark:from-slate-900 dark:to-slate-800 border-b border-gray-700 dark:border-slate-700 py-6 px-4 sm:px-6 shadow-lg relative z-20">
             <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
                 {/* Logo Section */}
                 <div className="flex items-center">
@@ -135,8 +135,8 @@ const SiteHeader = () => {
                             <div className="absolute top-1/2 left-1/2 w-3 h-0.5 bg-slate-800 -translate-y-1/2 origin-left rotate-45"></div>
                             <div className="absolute top-1/2 left-1/2 w-2 h-0.5 bg-slate-800 -translate-y-1/2 origin-left -rotate-90"></div>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-700 dark:text-white font-sans">
-                            My Weather <span className="text-blue-600">And News</span>
+                        <h1 className="text-3xl font-bold tracking-tight text-white font-sans">
+                            My Weather <span className="text-blue-400">And News</span>
                         </h1>
                     </div>
                 </div>
@@ -157,13 +157,13 @@ const SiteHeader = () => {
                                 }
                             }}
                             placeholder="Search site..."
-                            className="flex-grow px-3 py-1.5 text-sm bg-gray-100 border border-gray-300 rounded-l-full focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                            className="flex-grow px-3 py-1.5 text-sm bg-white/90 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-white placeholder-slate-400"
                             aria-label="Search site"
                         />
                         <button 
                             type="button"
                             onClick={handleButtonClick}
-                            className="px-4 py-1.5 bg-[#2C3E50] text-white rounded-r-full hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-r-full flex items-center justify-center transition-colors cursor-pointer"
                             aria-label="Search button"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
