@@ -58,7 +58,7 @@ const WeatherCard = ({ weather }: WeatherCardProps) => {
         </div>
 
         {/* Middle Section - Feels Like, Humidity, Wind Speed */}
-        <div className="bg-[#0d1929] py-6 px-4">
+        <div className="bg-transparent py-6 px-4">
           <div className="grid grid-cols-3 gap-4 max-w-5xl mx-auto">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-blue-400 shadow-lg shadow-blue-400/30 hover:shadow-blue-400/60 hover:scale-105 hover:border-yellow-300 transition-all duration-300 cursor-pointer">
               <p className="text-xs text-blue-400 mb-2 font-semibold uppercase tracking-wide text-center">Feels Like</p>
@@ -76,7 +76,7 @@ const WeatherCard = ({ weather }: WeatherCardProps) => {
         </div>
 
         {/* Bottom Section - Additional Details */}
-        <div className="bg-[#0a1420] py-6 px-4">
+        <div className="bg-transparent py-6 px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl mx-auto">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-blue-400 shadow-lg shadow-blue-400/30 hover:shadow-blue-400/60 hover:scale-105 hover:border-yellow-300 transition-all duration-300 cursor-pointer">
               <p className="text-xs text-blue-400 mb-2 font-semibold uppercase tracking-wide text-center">Pressure</p>
