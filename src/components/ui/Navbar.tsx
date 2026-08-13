@@ -133,9 +133,15 @@ const Navbar = () => {
 
   return (
     <div ref={navbarRef}>
-      <nav className="nav-gradient px-4 sm:px-6 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-40 bg-[#0a0f1e]/80 backdrop-blur-xl px-4 sm:px-6 py-4 flex items-center justify-between border-b border-white/10 shadow-lg relative">
+        {/* Animated background elements (clipped to nav bounds) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-none">
+          <div className="absolute top-0 left-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+        </div>
+        
         {/* Desktop navigation items - hidden on mobile */}
-        <div className="hidden lg:flex items-center gap-6 flex-1">
+        <div className="hidden lg:flex items-center gap-6 flex-1 relative z-10">
           {categoryKeys.map((category) => (
             <div
               key={category}
@@ -143,16 +149,16 @@ const Navbar = () => {
               onMouseEnter={() => handleMouseEnter(category)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="hover:text-blue-200 flex items-center whitespace-nowrap">
+              <button className="text-slate-200 hover:text-transparent hover:bg-gradient-to-r hover:from-blue-300 hover:to-purple-300 hover:bg-clip-text flex items-center whitespace-nowrap transition-all duration-300 font-medium">
                 {category} ▼
               </button>
               {openDropdown === category && (
-                <div className="dropdown-content absolute left-0 top-full mt-2 min-w-[180px] z-50">
+                <div className="absolute left-0 top-full mt-2 min-w-[180px] z-50 glass-card-dark rounded-xl shadow-2xl overflow-hidden">
                   {dropdownData[category as keyof typeof dropdownData].map((item, index) => (
                     <Link
                       key={index}
                       href={item.href}
-                      className="dropdown-item"
+                      className="block px-4 py-3 text-slate-200 hover:bg-gradient-to-r hover:from-blue-600/25 hover:via-purple-600/25 hover:to-pink-600/25 hover:text-white transition-all duration-200 border-b border-white/10 last:border-b-0"
                     >
                       {item.label}
                     </Link>
@@ -164,13 +170,13 @@ const Navbar = () => {
         </div>
 
         {/* Right side: desktop auth buttons + theme switcher + hamburger */}
-        <div className="flex items-center gap-3 ml-auto lg:ml-0">
+        <div className="flex items-center gap-3 ml-auto lg:ml-0 relative z-10">
           {/* Desktop auth buttons - hidden on mobile */}
           <div className="hidden lg:flex items-center gap-3">
             {!isAuthenticated ? (
               <button
                 onClick={() => router.push('/login')}
-                className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
+                className="border border-blue-400/40 bg-white/5 backdrop-blur-sm text-blue-300 px-5 py-2 rounded-xl hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-transparent text-sm transition-all duration-300 font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-105"
               >
                 Login
               </button>
@@ -178,7 +184,7 @@ const Navbar = () => {
               <>
                 <button
                   onClick={() => router.push('/profile')}
-                  className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
+                  className="border border-purple-400/40 bg-white/5 backdrop-blur-sm text-purple-300 px-5 py-2 rounded-xl hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:text-white hover:border-transparent text-sm transition-all duration-300 font-medium shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105"
                 >
                   Profile
                 </button>
@@ -187,7 +193,7 @@ const Navbar = () => {
                     await logout();
                     router.push('/');
                   }}
-                  className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
+                  className="border border-pink-400/40 bg-white/5 backdrop-blur-sm text-pink-300 px-5 py-2 rounded-xl hover:bg-gradient-to-r hover:from-pink-600 hover:to-red-600 hover:text-white hover:border-transparent text-sm transition-all duration-300 font-medium shadow-lg shadow-pink-500/20 hover:shadow-pink-500/40 hover:scale-105"
                 >
                   Logout
                 </button>
@@ -213,12 +219,12 @@ const Navbar = () => {
       {/* Mobile menu panel */}
       {mobileMenuOpen && (
         <div className="lg:hidden mobile-menu">
-          <div className="nav-gradient px-4 py-2 border-t border-white/10">
+          <div className="bg-[#0a0f1e]/95 backdrop-blur-xl px-4 py-2 border-t border-white/10">
             {categoryKeys.map((category) => (
               <div key={category} className="border-b border-white/10 last:border-b-0">
                 <button
                   onClick={() => toggleMobileSubmenu(category)}
-                  className="w-full flex items-center justify-between px-2 py-3 text-white hover:text-blue-200 text-left"
+                  className="w-full flex items-center justify-between px-2 py-3 text-slate-200 hover:text-transparent hover:bg-gradient-to-r hover:from-blue-300 hover:to-purple-300 hover:bg-clip-text text-left transition-all"
                 >
                   <span className="font-medium">{category}</span>
                   <span className={`transition-transform duration-200 text-sm ${mobileSubmenu === category ? 'rotate-180' : ''}`}>
@@ -226,13 +232,13 @@ const Navbar = () => {
                   </span>
                 </button>
                 {mobileSubmenu === category && (
-                  <div className="pb-2 pl-4">
+                  <div className="pb-2 pl-4 bg-white/[0.04] rounded-lg">
                     {dropdownData[category as keyof typeof dropdownData].map((item, index) => (
                       <Link
                         key={index}
                         href={item.href}
                         onClick={handleMobileLinkClick}
-                        className="block px-2 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded"
+                        className="block px-2 py-2 text-sm text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 rounded transition-all"
                       >
                         {item.label}
                       </Link>
@@ -247,7 +253,7 @@ const Navbar = () => {
               {!isAuthenticated ? (
                 <button
                   onClick={() => { router.push('/login'); handleMobileLinkClick(); }}
-                  className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors text-center"
+                  className="border border-blue-400/40 bg-white/5 backdrop-blur-sm text-blue-300 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-transparent text-sm transition-all duration-300 text-center font-medium"
                 >
                   Login
                 </button>
@@ -255,7 +261,7 @@ const Navbar = () => {
                 <>
                   <button
                     onClick={() => { router.push('/profile'); handleMobileLinkClick(); }}
-                    className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors text-center"
+                    className="border border-purple-400/40 bg-white/5 backdrop-blur-sm text-purple-300 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:text-white hover:border-transparent text-sm transition-all duration-300 text-center font-medium"
                   >
                     Profile
                   </button>
@@ -265,7 +271,7 @@ const Navbar = () => {
                       router.push('/');
                       handleMobileLinkClick();
                     }}
-                    className="border border-white text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors text-center"
+                    className="border border-pink-400/40 bg-white/5 backdrop-blur-sm text-pink-300 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-pink-600 hover:to-red-600 hover:text-white hover:border-transparent text-sm transition-all duration-300 text-center font-medium"
                   >
                     Logout
                   </button>

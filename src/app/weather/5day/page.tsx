@@ -14,20 +14,21 @@ const DailyForecastCard: React.FC<DailyForecastCardProps> = ({ forecast }) => {
   const dateString = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-blue-400 shadow-lg shadow-blue-400/30 hover:shadow-blue-400/50 transition-all">
-      <div className="text-center">
-        <h3 className="font-bold text-xl text-white mb-1">{day}</h3>
-        <p className="text-sm text-blue-400 mb-4">{dateString}</p>
+    <div className="group relative">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-15 group-hover:opacity-40 transition duration-300"></div>
+      <div className="relative glass-card glass-card-hover rounded-2xl p-6 text-center hover:border-purple-400/50">
+        <h3 className="font-extrabold text-xl text-gradient-soft mb-1">{day}</h3>
+        <p className="text-sm text-blue-300 mb-4">{dateString}</p>
         <div className="my-4 flex justify-center">
           <img 
             src={`https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`} 
             alt={forecast.weather[0].description}
-            className="w-16 h-16"
+            className="w-16 h-16 group-hover:scale-110 transition-transform duration-300"
           />
         </div>
-        <p className="text-3xl font-bold text-white mt-4">{Math.round(forecast.main.temp_max)}°</p>
-        <p className="text-xl text-gray-300 mt-1">{Math.round(forecast.main.temp_min)}°</p>
-        <p className="text-sm text-gray-300 capitalize mt-3">{forecast.weather[0].description}</p>
+        <p className="text-3xl font-bold text-gradient-soft mt-4">{Math.round(forecast.main.temp_max)}°</p>
+        <p className="text-xl text-slate-400 mt-1">{Math.round(forecast.main.temp_min)}°</p>
+        <p className="text-sm text-slate-300 capitalize mt-3">{forecast.weather[0].description}</p>
       </div>
     </div>
   );
@@ -51,20 +52,20 @@ export default function FiveDayForecastPage() {
     .slice(0, 5) || [];
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className="container mx-auto p-4 md:p-6 relative z-10">
       <div className="flex justify-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white text-center border-2 border-blue-300 p-4 rounded-lg">5-Day Forecast</h1>
+        <h1 className="text-3xl font-extrabold text-gradient section-heading text-center py-4 page-enter">5-Day Forecast</h1>
       </div>
       
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="mb-6 page-enter" style={{ animationDelay: '0.1s' }}>
+        <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
           <div className="flex-grow">
             <input
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder="Enter a city name"
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 glass-input rounded-xl shadow-sm"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   getWeatherByCity(city);
@@ -74,7 +75,7 @@ export default function FiveDayForecastPage() {
           </div>
           <button
             onClick={() => getWeatherByCity(city)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-xl glow-btn transition-colors font-semibold"
           >
             Update Forecast
           </button>
@@ -83,12 +84,12 @@ export default function FiveDayForecastPage() {
 
       {loading && (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]"></div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <div className="bg-red-500/10 border border-red-500/40 text-red-200 px-4 py-3 rounded-2xl relative mb-6 backdrop-blur-md" role="alert">
           <strong className="font-bold">Error! </strong>
           <span className="block sm:inline">{error}</span>
         </div>
@@ -103,7 +104,7 @@ export default function FiveDayForecastPage() {
       )}
 
       {!loading && !error && !forecastData && (
-        <div className="bg-yellow-100 border border-blue-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
+        <div className="bg-amber-500/10 border border-amber-500/40 text-amber-200 px-4 py-3 rounded-2xl relative backdrop-blur-md" role="alert">
           <strong className="font-bold">No Data Available! </strong>
           <span className="block sm:inline">Please try searching for a valid city.</span>
         </div>

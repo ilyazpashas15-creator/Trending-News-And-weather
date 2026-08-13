@@ -2,9 +2,9 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#1a2942] dark:bg-[#0d1929] text-white">
+    <footer className="bg-[#0a0f1e]/90 dark:bg-[#05070f]/90 backdrop-blur-xl text-white border-t border-white/10">
       {/* Top Feedback Bar */}
-      <div className="bg-[#0077be] py-3 border-b border-[#005a94]">
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-3 border-b border-white/10">
         <div className="container mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium">How was your experience?</span>
@@ -153,7 +153,7 @@ const Footer = () => {
       </div>
 
       {/* Bottom Copyright Bar */}
-      <div className="bg-[#0d1929] border-t border-gray-700">
+      <div className="bg-[#05070f] border-t border-white/10">
         <div className="container mx-auto px-6 py-5">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-3">

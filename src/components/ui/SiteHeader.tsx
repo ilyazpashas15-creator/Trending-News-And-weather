@@ -121,29 +121,54 @@ const SiteHeader = () => {
     }, []);
 
     return (
-        <div className="bg-gradient-to-b from-[#2C3E50] to-[#34495E] dark:from-slate-900 dark:to-slate-800 border-b border-gray-700 dark:border-slate-700 py-6 px-4 sm:px-6 shadow-lg relative z-20">
-            <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
-                {/* Logo Section */}
+        <div className="bg-[#0d1526]/80 backdrop-blur-xl border-b border-purple-500/20 py-8 px-4 sm:px-6 shadow-2xl relative z-20">
+            {/* Animated background elements (clipped to header bounds) */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl hero-glow"></div>
+                <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl hero-glow" style={{ animationDelay: '2s' }}></div>
+            </div>
+
+            <div className="max-w-6xl mx-auto flex flex-col items-center gap-6 relative z-10">
+                {/* Logo Section with Enhanced Design */}
                 <div className="flex items-center">
-                    <div className="flex items-center gap-2">
-                        {/* Logo Icon representation */}
-                        <div className="w-10 h-10 relative">
-                            <div className="absolute inset-0 border-4 border-blue-400 rounded-full border-t-transparent animate-spin-slow"></div>
-                            <div className="absolute inset-2 bg-blue-600 rounded-full"></div>
-                            <div className="absolute inset-4 bg-white rounded-full"></div>
-                            {/* Clock hands */}
-                            <div className="absolute top-1/2 left-1/2 w-3 h-0.5 bg-slate-800 -translate-y-1/2 origin-left rotate-45"></div>
-                            <div className="absolute top-1/2 left-1/2 w-2 h-0.5 bg-slate-800 -translate-y-1/2 origin-left -rotate-90"></div>
+                    <div className="flex items-center gap-3">
+                        {/* Enhanced Logo Icon */}
+                        <div className="relative w-14 h-14 group">
+                            {/* Outer glow ring */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-md opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                            {/* Rotating ring */}
+                            <div className="absolute inset-0 border-4 border-transparent border-t-blue-400 border-r-purple-400 rounded-full animate-spin"></div>
+                            {/* Main circle with gradient */}
+                            <div className="absolute inset-2 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full shadow-lg"></div>
+                            <div className="absolute inset-4 bg-white dark:bg-slate-900 rounded-full"></div>
+                            {/* Clock hands with glow */}
+                            <div className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 origin-left rotate-45 shadow-lg shadow-blue-500/50"></div>
+                            <div className="absolute top-1/2 left-1/2 w-3 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 -translate-y-1/2 origin-left -rotate-90 shadow-lg shadow-purple-500/50"></div>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white font-sans">
-                            My Weather <span className="text-blue-400">And News</span>
+                        
+                        {/* Enhanced Title with Gradient and Effects */}
+                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-display relative">
+                            <span className="text-gradient-soft drop-shadow-lg">
+                                My Weather
+                            </span>
+                            {' '}
+                            <span className="relative inline-block">
+                                <span className="text-gradient animate-gradient-x drop-shadow-lg">
+                                    And News
+                                </span>
+                                {/* Animated underline */}
+                                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 animate-pulse"></span>
+                            </span>
                         </h1>
                     </div>
                 </div>
 
-                {/* Header Search Section - centered and smaller */}
-                <div className="w-full max-w-md relative">
-                    <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex w-full" role="search">
+                {/* Enhanced Search Section with Modern Design */}
+                <div className="w-full max-w-md relative group">
+                    <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex w-full relative" role="search">
+                        {/* Glowing border effect */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+                        
                         <input
                             ref={inputRef}
                             type="text"
@@ -156,38 +181,42 @@ const SiteHeader = () => {
                                     handleSearch();
                                 }
                             }}
-                            placeholder="Search site..."
-                            className="flex-grow px-3 py-1.5 text-sm bg-white/90 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-white placeholder-slate-400"
+                            placeholder="Search for weather, news, tools..."
+                            className="relative flex-grow px-5 py-3 text-sm glass-input border border-white/20 rounded-l-full focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-slate-300 transition-all duration-300"
                             aria-label="Search site"
                         />
                         <button 
                             type="button"
                             onClick={handleButtonClick}
-                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-r-full flex items-center justify-center transition-colors cursor-pointer"
+                            className="relative px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-r-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-purple-500/50 transform hover:scale-105"
                             aria-label="Search button"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </button>
                     </form>
 
-                    {/* Search Suggestions Dropdown */}
+                    {/* Enhanced Search Suggestions Dropdown */}
                     {showSuggestions && filteredSuggestions.length > 0 && (
                         <div 
                             ref={dropdownRef}
-                            className="absolute top-full mt-2 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                            className="absolute top-full mt-3 w-full glass-card-dark rounded-2xl shadow-2xl max-h-96 overflow-hidden z-50"
                         >
-                            {filteredSuggestions.map((suggestion, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => handleSearch(suggestion.path)}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-200 dark:border-slate-600 last:border-b-0"
-                                >
-                                    <div className="font-medium text-slate-700 dark:text-white">{suggestion.title}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">{suggestion.path}</div>
-                                </button>
-                            ))}
+                            <div className="overflow-y-auto max-h-96 custom-scrollbar">
+                                {filteredSuggestions.map((suggestion, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleSearch(suggestion.path)}
+                                        className="w-full text-left px-5 py-3 hover:bg-gradient-to-r hover:from-blue-600/20 hover:via-purple-600/20 hover:to-pink-600/20 transition-all duration-200 border-b border-white/10 last:border-b-0 group"
+                                    >
+                                        <div className="font-semibold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-300 group-hover:to-purple-300 group-hover:bg-clip-text transition-all">
+                                            {suggestion.title}
+                                        </div>
+                                        <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{suggestion.path}</div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
