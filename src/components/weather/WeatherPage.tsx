@@ -324,8 +324,8 @@ const WeatherPage = () => {
                         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
                       </div>
                       
-                      {/* Table Header */}
-                      <div className="relative z-10 flex items-center justify-between py-4 px-6 bg-white/[0.03] backdrop-blur-sm border-b border-white/10">
+                      {/* Table Header - Hidden on mobile */}
+                      <div className="hidden sm:flex relative z-10 items-center justify-between py-4 px-6 bg-white/[0.03] backdrop-blur-sm border-b border-white/10">
                         <div className="w-1/3 text-xs font-bold text-transparent bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text uppercase tracking-wider">Location</div>
                         <div className="w-1/3 text-center text-xs font-bold text-transparent bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text uppercase tracking-wider">Local Time</div>
                         <div className="w-1/3 text-right text-xs font-bold text-transparent bg-gradient-to-r from-pink-300 to-blue-300 bg-clip-text uppercase tracking-wider">Weather</div>
