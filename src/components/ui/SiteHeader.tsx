@@ -121,33 +121,33 @@ const SiteHeader = () => {
     }, []);
 
     return (
-        <div className="bg-[#0d1526]/80 backdrop-blur-xl border-b border-purple-500/20 py-8 px-4 sm:px-6 shadow-2xl relative z-20">
+        <div className="bg-[#0d1526]/80 backdrop-blur-xl border-b border-purple-500/20 py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6 shadow-2xl relative z-20 overflow-hidden">
             {/* Animated background elements (clipped to header bounds) */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl hero-glow"></div>
                 <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl hero-glow" style={{ animationDelay: '2s' }}></div>
             </div>
 
-            <div className="max-w-6xl mx-auto flex flex-col items-center gap-6 relative z-10">
+            <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 sm:gap-6 relative z-10">
                 {/* Logo Section with Enhanced Design */}
                 <div className="flex items-center">
-                    <div className="flex items-center gap-3">
-                        {/* Enhanced Logo Icon */}
-                        <div className="relative w-14 h-14 group">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Enhanced Logo Icon - Responsive sizing */}
+                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 group flex-shrink-0">
                             {/* Outer glow ring */}
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-md opacity-75 group-hover:opacity-100 transition-opacity"></div>
                             {/* Rotating ring */}
-                            <div className="absolute inset-0 border-4 border-transparent border-t-blue-400 border-r-purple-400 rounded-full animate-spin"></div>
+                            <div className="absolute inset-0 border-2 sm:border-3 md:border-4 border-transparent border-t-blue-400 border-r-purple-400 rounded-full animate-spin"></div>
                             {/* Main circle with gradient */}
-                            <div className="absolute inset-2 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full shadow-lg"></div>
-                            <div className="absolute inset-4 bg-white dark:bg-slate-900 rounded-full"></div>
-                            {/* Clock hands with glow */}
-                            <div className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 origin-left rotate-45 shadow-lg shadow-blue-500/50"></div>
-                            <div className="absolute top-1/2 left-1/2 w-3 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 -translate-y-1/2 origin-left -rotate-90 shadow-lg shadow-purple-500/50"></div>
+                            <div className="absolute inset-1 sm:inset-1.5 md:inset-2 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full shadow-lg"></div>
+                            <div className="absolute inset-2 sm:inset-3 md:inset-4 bg-white dark:bg-slate-900 rounded-full"></div>
+                            {/* Clock hands with glow - Responsive sizing */}
+                            <div className="absolute top-1/2 left-1/2 w-3 sm:w-3.5 md:w-4 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 origin-left rotate-45 shadow-lg shadow-blue-500/50"></div>
+                            <div className="absolute top-1/2 left-1/2 w-2 sm:w-2.5 md:w-3 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 -translate-y-1/2 origin-left -rotate-90 shadow-lg shadow-purple-500/50"></div>
                         </div>
                         
-                        {/* Enhanced Title with Gradient and Effects */}
-                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-display relative">
+                        {/* Enhanced Title with Gradient and Effects - Responsive text */}
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight font-display relative leading-tight">
                             <span className="text-gradient-soft drop-shadow-lg">
                                 My Weather
                             </span>
@@ -157,7 +157,7 @@ const SiteHeader = () => {
                                     And News
                                 </span>
                                 {/* Animated underline */}
-                                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 animate-pulse"></span>
+                                <span className="absolute -bottom-0.5 sm:-bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 animate-pulse"></span>
                             </span>
                         </h1>
                     </div>
