@@ -188,57 +188,6 @@ const WeatherPage = () => {
       {/* Ambient drifting orbs */}
       <div className="ambient-orbs"></div>
 
-      {/* Background weather report elements */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        {weatherData && (
-          <>
-            {/* Main weather icon */}
-            <div className="absolute top-[10%] right-[5%] sm:right-[10%] opacity-[0.08] sm:opacity-[0.1]">
-              <img
-                src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
-                alt={weatherData.weather[0].description}
-                className="w-24 h-24 sm:w-32 md:w-48 md:h-48"
-              />
-            </div>
-
-            {/* Temperature indicator */}
-            <div className="absolute bottom-[5%] left-[5%] sm:bottom-[10%] sm:left-[10%] opacity-[0.1] sm:opacity-[0.12]">
-              <div className="text-sm sm:text-2xl md:text-3xl lg:text-4xl">
-                {/* The main.temp is in Kelvin, so convert to Celsius */}
-                {weatherData.main.temp > 20 ? '🌡️' : '❄️'}
-                <span className="ml-1 text-xs sm:text-lg md:text-xl lg:text-2xl">
-                  {Math.round(weatherData.main.temp)}°C
-                </span>
-              </div>
-            </div>
-
-            {/* Humidity indicator */}
-            <div className="absolute top-[10%] sm:top-[15%] right-[20%] sm:right-[30%] opacity-[0.08] sm:opacity-[0.1]">
-              <div className="text-sm sm:text-xl md:text-2xl">💧
-                <span className="ml-1 text-xs sm:text-sm md:text-lg opacity-[0.12] sm:opacity-[0.15]">
-                  {weatherData.main.humidity}%
-                </span>
-              </div>
-            </div>
-
-            {/* Wind speed indicator */}
-            <div className="absolute bottom-[10%] sm:bottom-[15%] right-[5%] sm:right-[10%] opacity-[0.08] sm:opacity-[0.1]">
-              <div className="text-sm sm:text-2xl md:text-3xl">💨
-                <span className="ml-1 text-xs sm:text-sm md:text-lg">
-                  {(weatherData.wind.speed * 3.6).toFixed(0)} km/h
-                </span>
-              </div>
-            </div>
-
-            {/* Large temperature in background */}
-            <div className="hidden sm:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.05] sm:opacity-[0.08] text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold">
-              {/* Temperature is already in Celsius */}
-              {Math.round(weatherData.main.temp)}°
-            </div>
-          </>
-        )}
-      </div>
-
       {/* Main content */}
       <div className="relative z-20 main-content">
 
