@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ThemeToggle from './ThemeToggle';
 
 interface SearchSuggestion {
     title: string;
@@ -127,11 +126,6 @@ const SiteHeader = () => {
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl hero-glow"></div>
                 <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl hero-glow" style={{ animationDelay: '2s' }}></div>
-            </div>
-
-            {/* Header Theme Toggle Button (Step 02 of Task1.md) */}
-            <div className="absolute top-3 right-3 sm:top-5 sm:right-6 z-30">
-                <ThemeToggle />
             </div>
 
             <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 sm:gap-6 relative z-10">

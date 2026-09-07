@@ -1414,3 +1414,29 @@ html.dark body {
 .glass-input::placeholder {
   color: rgba(148, 163, 184, 0.7);
 }
+
+/* --- Dropdown and popover animations --- */
+@keyframes nav-dropdown-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-in {
+  animation: nav-dropdown-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Custom hide scrollbar */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
