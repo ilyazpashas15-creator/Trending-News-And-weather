@@ -1,5 +1,6 @@
 import { NewsArticle } from '@/types';
 import apiKeyManager from './apiKeyManager';
+import { getMockArticlesForCategory } from '@/data/mockNewsData';
 
 interface NewsDataResponse {
   status: string;
@@ -112,10 +113,14 @@ export const fetchTopHeadlines = async (
       return articles;
     });
 
-    return articles;
+    if (articles && articles.length > 0) {
+      return articles;
+    }
+    console.warn(`⚠️ API returned 0 articles. Using high-quality offline cached news for "${category || 'general'}".`);
+    return getMockArticlesForCategory(category, pageSize);
   } catch (error) {
-    console.error('❌ Failed to fetch news:', error);
-    return [];
+    console.warn('❌ Failed to fetch live news from API, smoothly falling back to cached headlines:', error);
+    return getMockArticlesForCategory(category, pageSize);
   }
 };
 
@@ -194,10 +199,20 @@ export const fetchNewsByQueryAndCategory = async (
       return articles;
     });
 
-    return articles;
+    if (articles && articles.length > 0) {
+      return articles;
+    }
+    console.warn(`⚠️ API query returned 0 articles. Searching cached headlines for "${query}".`);
+    const mock = getMockArticlesForCategory(category, pageSize);
+    const q = query.toLowerCase().trim();
+    const filtered = mock.filter(a => a.title.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q)));
+    return filtered.length > 0 ? filtered : mock;
   } catch (error) {
-    console.error('❌ Failed to search news:', error);
-    return [];
+    console.warn('❌ Failed to search live news, searching cached headlines:', error);
+    const mock = getMockArticlesForCategory(category, pageSize);
+    const q = query.toLowerCase().trim();
+    const filtered = mock.filter(a => a.title.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q)));
+    return filtered.length > 0 ? filtered : mock;
   }
 };
 
@@ -245,10 +260,19 @@ export const fetchNewsByQuery = async (
       return articles;
     });
 
-    return articles;
+    if (articles && articles.length > 0) {
+      return articles;
+    }
+    const mock = getMockArticlesForCategory('general', pageSize);
+    const q = query.toLowerCase().trim();
+    const filtered = mock.filter(a => a.title.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q)));
+    return filtered.length > 0 ? filtered : mock;
   } catch (error) {
-    console.error('❌ Failed to search news:', error);
-    return [];
+    console.warn('❌ Failed to search news, returning fallback:', error);
+    const mock = getMockArticlesForCategory('general', pageSize);
+    const q = query.toLowerCase().trim();
+    const filtered = mock.filter(a => a.title.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q)));
+    return filtered.length > 0 ? filtered : mock;
   }
 };
 

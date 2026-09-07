@@ -1,318 +1,287 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import NewsCard from '../ui/NewsCard';
+import NewsCard from './NewsCard';
 import { NewsArticle } from '@/types';
-import { fetchTopHeadlines, fetchNewsByQuery, fetchNewsByQueryAndCategory } from '@/services/newsService';
-import LoadingSpinner from '../ui/LoadingSpinner';
-import ErrorMessage from '../ui/ErrorMessage';
-import { citiesByState } from '@/data/citiesData';
+import { fetchTopHeadlines, fetchNewsByQueryAndCategory } from '@/services/newsService';
+import LoadingSpinner from './LoadingSpinner';
+import { useBookmarks } from '@/context/BookmarkContext';
+import { trackEvent } from '@/lib/analytics';
 
 interface NewsSectionProps {
   defaultCategory?: string;
   defaultCountry?: string;
   useWorldAPI?: boolean;
+  showTitle?: boolean;
 }
 
-const NewsSection: React.FC<NewsSectionProps> = ({ 
-  defaultCategory = 'general', 
+const CATEGORIES = [
+  { id: 'general', name: 'Trending' },
+  { id: 'technology', name: 'Tech' },
+  { id: 'business', name: 'Finance' },
+  { id: 'sports', name: 'Sports' },
+  { id: 'science', name: 'Science' },
+  { id: 'health', name: 'Health' },
+  { id: 'entertainment', name: 'Culture' },
+];
+
+const COUNTRIES = [
+  { code: 'in', name: 'India', flag: '🇮🇳' },
+  { code: 'us', name: 'US', flag: '🇺🇸' },
+  { code: 'gb', name: 'UK', flag: '🇬🇧' },
+  { code: 'ca', name: 'Canada', flag: '🇨🇦' },
+  { code: 'au', name: 'Australia', flag: '🇦🇺' },
+];
+
+const NewsSection: React.FC<NewsSectionProps> = ({
+  defaultCategory = 'general',
   defaultCountry = 'in',
-  useWorldAPI = false
+  useWorldAPI = false,
+  showTitle = true,
 }) => {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>(defaultCategory);
   const [selectedCountry, setSelectedCountry] = useState<string>(defaultCountry);
-  const [selectedState, setSelectedState] = useState<string>('');
-  const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'news' | 'bookmarks'>('news');
 
-  const categories = [
-    { id: 'general', name: 'General' },
-    { id: 'business', name: 'Business' },
-    { id: 'entertainment', name: 'Entertainment' },
-    { id: 'health', name: 'Health' },
-    { id: 'science', name: 'Science' },
-    { id: 'sports', name: 'Sports' },
-    { id: 'technology', name: 'Technology' },
-  ];
-
-  const countries = [
-    { code: 'us', name: 'United States', flag: '🇺🇸' },
-    { code: 'in', name: 'India', flag: '🇮🇳' },
-    { code: 'gb', name: 'United Kingdom', flag: '🇬🇧' },
-    { code: 'ca', name: 'Canada', flag: '🇨🇦' },
-    { code: 'au', name: 'Australia', flag: '🇦🇺' },
-    { code: 'de', name: 'Germany', flag: '🇩🇪' },
-  ];
-
-  // States/Regions for different countries
-  const statesByCountry: { [key: string]: string[] } = {
-    us: ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'],
-    in: ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Puducherry', 'Chandigarh', 'Dadra and Nagar Haveli', 'Daman and Diu', 'Lakshadweep', 'Andaman and Nicobar Islands'],
-    gb: ['England', 'Scotland', 'Wales', 'Northern Ireland'],
-    ca: ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia', 'Nunavut', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Yukon'],
-    au: ['New South Wales', 'Victoria', 'Queensland', 'Western Australia', 'South Australia', 'Tasmania', 'Australian Capital Territory', 'Northern Territory'],
-    de: ['Baden-Württemberg', 'Bavaria', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hesse', 'Lower Saxony', 'Mecklenburg-Vorpommern', 'North Rhine-Westphalia', 'Rhineland-Palatinate', 'Saarland', 'Saxony', 'Saxony-Anhalt', 'Schleswig-Holstein', 'Thuringia'],
-  };
+  const { bookmarks } = useBookmarks();
 
   useEffect(() => {
-    loadNews();
-  }, [selectedCategory, selectedCountry, selectedState, selectedCity, searchQuery]);
+    if (activeTab === 'news') {
+      loadNews();
+    }
+  }, [selectedCategory, selectedCountry, searchQuery, activeTab]);
 
   const loadNews = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       let newsData: NewsArticle[] = [];
-      
-      console.log('🔄 Loading news with filters:', {
-        category: selectedCategory,
-        country: selectedCountry,
-        state: selectedState,
-        city: selectedCity,
-        searchQuery: searchQuery
-      });
-      
+
       if (searchQuery.trim()) {
-        // If there's a search query, fetch news based on the query with category
-        console.log(`🔍 Using search query: "${searchQuery}" with category: ${selectedCategory}`);
-        newsData = await fetchNewsByQueryAndCategory(searchQuery, selectedCategory);
-      } else if (selectedCity) {
-        // If a city is selected, try with category first
-        const cityQuery = `${selectedCity} ${selectedState}`;
-        console.log(`🏙️ Fetching city news: "${cityQuery}" with category: ${selectedCategory}`);
-        newsData = await fetchNewsByQueryAndCategory(cityQuery, selectedCategory);
-        
-        // Fallback: If no results, try state-level with category
-        if (newsData.length === 0 && selectedState) {
-          console.log(`⚠️ No city results, trying state-level: ${selectedState}`);
-          const stateQuery = `${selectedState} ${selectedCountry === 'us' ? 'USA' : selectedCountry === 'in' ? 'India' : ''}`;
-          newsData = await fetchNewsByQueryAndCategory(stateQuery, selectedCategory);
-        }
-        
-        // Fallback: If still no results, try country-level with category
-        if (newsData.length === 0) {
-          console.log(`⚠️ No state results, trying country-level: ${selectedCountry}`);
-          newsData = await fetchTopHeadlines(selectedCategory, selectedCountry, 20, 1, useWorldAPI);
-        }
-      } else if (selectedState) {
-        // If a state is selected, try with category first
-        const stateQuery = `${selectedState} ${selectedCountry === 'us' ? 'USA' : selectedCountry === 'in' ? 'India' : ''}`;
-        console.log(`📍 Fetching state news: "${stateQuery}" with category: ${selectedCategory}`);
-        newsData = await fetchNewsByQueryAndCategory(stateQuery, selectedCategory);
-        
-        // Fallback: If no results, try country-level with category
-        if (newsData.length === 0) {
-          console.log(`⚠️ No state results, trying country-level: ${selectedCountry}`);
-          newsData = await fetchTopHeadlines(selectedCategory, selectedCountry, 20, 1, useWorldAPI);
-        }
+        newsData = await fetchNewsByQueryAndCategory(searchQuery.trim(), selectedCategory);
+        trackEvent('search_news', { query: searchQuery, category: selectedCategory });
       } else {
-        // Otherwise, fetch top headlines by category and country
-        console.log(`🌍 Fetching country headlines: ${selectedCountry} with category: ${selectedCategory}`);
         newsData = await fetchTopHeadlines(selectedCategory, selectedCountry, 20, 1, useWorldAPI);
       }
-      
-      console.log(`📊 Received ${newsData.length} articles`);
-      
-      if (newsData.length === 0) {
-        setError(`No news articles found for ${selectedCity || selectedState || selectedCountry.toUpperCase()} in ${selectedCategory} category. Try selecting a different category or region.`);
-      }
-      
+
       setArticles(newsData);
     } catch (err) {
-      setError('Failed to load news. Please try again later.');
       console.error('Error loading news:', err);
+      setError('Could not fetch live updates. Displaying cached headlines.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setSearchQuery(''); // Reset search when changing category
+  const handleCategoryClick = (catId: string) => {
+    setSelectedCategory(catId);
+    setActiveTab('news');
+    trackEvent('category_filter', { category: catId });
   };
 
-  const handleCountryChange = (countryCode: string) => {
-    setSelectedCountry(countryCode);
-    setSelectedState(''); // Reset state when changing country
-    setSelectedCity(''); // Reset city when changing country
-    setSearchQuery(''); // Reset search when changing country
-  };
-
-  const handleStateChange = (state: string) => {
-    setSelectedState(state);
-    setSelectedCity(''); // Reset city when changing state
-    setSearchQuery(''); // Reset search when changing state
-  };
-
-  const handleCityChange = (city: string) => {
-    setSelectedCity(city);
-    setSearchQuery(''); // Reset search when changing city
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // The effect will handle loading based on searchQuery
+    if (activeTab !== 'news') setActiveTab('news');
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 text-center">Latest News</h2>
-        
-        {/* Country Selector */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">Select Country:</label>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {countries.map((country) => (
-              <button
-                key={country.code}
-                onClick={() => handleCountryChange(country.code)}
-                className={`px-4 py-2 text-sm rounded-lg flex items-center justify-center gap-2 transition-colors ${
-                  selectedCountry === country.code
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                <span>{country.flag}</span>
-                <span>{country.name}</span>
-              </button>
-            ))}
+    <section className="w-full my-8" aria-label="Trending News Feed">
+      {showTitle && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white section-heading tracking-tight">
+              Trending News & Insights
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Curated real-time headlines filtered by category, region, and bookmarks
+            </p>
           </div>
+
+          {/* Bookmarks Counter Button */}
+          <button
+            onClick={() => setActiveTab(activeTab === 'bookmarks' ? 'news' : 'bookmarks')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 border ${
+              activeTab === 'bookmarks'
+                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/30'
+                : 'bg-white/80 dark:bg-white/5 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:border-purple-400'
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill={activeTab === 'bookmarks' ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="2"
+              className="w-4 h-4 text-purple-400"
+            >
+              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+            </svg>
+            <span>Saved Reads</span>
+            <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold">
+              {bookmarks.length}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Category Pills & Search Bar Container */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-6 p-2.5 rounded-2xl glass-card">
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 lg:pb-0 scrollbar-none flex-nowrap">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => handleCategoryClick(category.id)}
+              className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 ${
+                activeTab === 'news' && selectedCategory === category.id
+                  ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-[1.02]'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
         </div>
 
-        {/* State/Region Selector - Shows only if country has states */}
-        {statesByCountry[selectedCountry] && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
-              Select State/Region (Optional):
-            </label>
-            <div className="flex flex-wrap gap-2 justify-center">
+        {/* Right Tools: Country Selector & Search */}
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          {/* Country Quick Select */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/5 rounded-xl p-1 border border-slate-200 dark:border-white/10">
+            {COUNTRIES.map((country) => (
               <button
-                onClick={() => handleStateChange('')}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors text-center ${
-                  selectedState === ''
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                key={country.code}
+                onClick={() => {
+                  setSelectedCountry(country.code);
+                  setActiveTab('news');
+                }}
+                className={`px-2 py-1 text-xs rounded-lg transition-all ${
+                  selectedCountry === country.code
+                    ? 'bg-white dark:bg-white/20 shadow-sm font-bold scale-105'
+                    : 'opacity-70 hover:opacity-100'
                 }`}
+                title={country.name}
               >
-                All States
-              </button>
-              {statesByCountry[selectedCountry].map((state) => (
-                <button
-                  key={state}
-                  onClick={() => handleStateChange(state)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors text-center ${
-                    selectedState === state
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {state}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* City Selector - Shows only if state is selected and has cities */}
-        {selectedState && citiesByState[selectedState] && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
-              Select City (Optional):
-            </label>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button
-                onClick={() => handleCityChange('')}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors text-center ${
-                  selectedCity === ''
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                All Cities
-              </button>
-              {citiesByState[selectedState].map((city) => (
-                <button
-                  key={city}
-                  onClick={() => handleCityChange(city)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors text-center ${
-                    selectedCity === city
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Search and Category Filter */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <form onSubmit={handleSearch} className="flex-1">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for news..."
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-              />
-              <button 
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600"
-              >
-                🔍
-              </button>
-            </div>
-          </form>
-          
-          <div className="flex flex-wrap gap-2 justify-center">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleCategoryChange(category.id)}
-                className={`px-3 py-1.5 text-sm rounded-full text-center ${
-                  selectedCategory === category.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                {category.name}
+                {country.flag}
               </button>
             ))}
           </div>
+
+          {/* Search Input */}
+          <form onSubmit={handleSearchSubmit} className="relative flex-1 sm:w-56">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filter headlines..."
+              className="w-full px-3.5 py-2 pl-8 text-xs sm:text-sm glass-input rounded-xl border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
+            <svg
+              className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </form>
         </div>
       </div>
 
-      {error && <ErrorMessage message={error} />}
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <LoadingSpinner />
-        </div>
-      ) : (
-        <div>
-          {articles.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {articles.map((article, index) => (
-                <NewsCard key={index} article={article} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No news articles found.</p>
-              <p className="text-gray-400 text-sm mt-2">Try changing your search or category.</p>
-            </div>
-          )}
+      {/* Bookmarks Mode Header */}
+      {activeTab === 'bookmarks' && (
+        <div className="p-4 mb-6 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-900 dark:text-purple-200 flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-sm sm:text-base">Saved Articles ({bookmarks.length})</h3>
+            <p className="text-xs opacity-80">Articles you have bookmarked are saved offline in your browser.</p>
+          </div>
+          <button
+            onClick={() => setActiveTab('news')}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors"
+          >
+            Back to Live News
+          </button>
         </div>
       )}
-    </div>
+
+      {/* Content Grid or State */}
+      {activeTab === 'bookmarks' ? (
+        bookmarks.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {bookmarks.map((article, index) => (
+              <NewsCard key={`bookmark-${article.url}-${index}`} article={article} category="general" />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 glass-card rounded-3xl p-8 max-w-lg mx-auto">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg text-slate-800 dark:text-white">No bookmarked articles yet</h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">
+              Click the bookmark ribbon on any news card to save stories for later reading.
+            </p>
+            <button
+              onClick={() => setActiveTab('news')}
+              className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-500 transition-all shadow-md"
+            >
+              Browse Trending News
+            </button>
+          </div>
+        )
+      ) : loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="glass-card rounded-2xl overflow-hidden p-0 animate-pulse h-80 flex flex-col justify-between">
+              <div className="h-44 bg-slate-300/40 dark:bg-white/10 w-full" />
+              <div className="p-4 flex flex-col gap-2.5">
+                <div className="h-4 bg-slate-300/40 dark:bg-white/10 rounded w-3/4" />
+                <div className="h-3 bg-slate-300/40 dark:bg-white/10 rounded w-full" />
+                <div className="h-3 bg-slate-300/40 dark:bg-white/10 rounded w-2/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : articles.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {articles.map((article, index) => (
+            <NewsCard
+              key={`${article.url}-${index}`}
+              article={article}
+              category={selectedCategory}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 glass-card rounded-3xl">
+          <p className="text-base text-slate-600 dark:text-slate-300 font-medium">No articles matched your current query.</p>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('general');
+            }}
+            className="mt-3 text-xs text-purple-600 dark:text-purple-400 font-semibold underline"
+          >
+            Reset Filters
+          </button>
+        </div>
+      )}
+    </section>
   );
 };
 

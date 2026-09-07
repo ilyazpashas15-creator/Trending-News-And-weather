@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import ThemeToggle from './ThemeToggle';
 
 interface SearchSuggestion {
     title: string;
@@ -121,11 +122,16 @@ const SiteHeader = () => {
     }, []);
 
     return (
-        <div className="bg-[#0d1526]/80 backdrop-blur-xl border-b border-purple-500/20 py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6 shadow-2xl relative z-20 overflow-hidden">
+        <div className="bg-white/80 dark:bg-[#0d1526]/85 backdrop-blur-xl border-b border-slate-200 dark:border-purple-500/20 py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6 shadow-md dark:shadow-2xl relative z-20 overflow-hidden transition-colors duration-300">
             {/* Animated background elements (clipped to header bounds) */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl hero-glow"></div>
                 <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl hero-glow" style={{ animationDelay: '2s' }}></div>
+            </div>
+
+            {/* Header Theme Toggle Button (Step 02 of Task1.md) */}
+            <div className="absolute top-3 right-3 sm:top-5 sm:right-6 z-30">
+                <ThemeToggle />
             </div>
 
             <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 sm:gap-6 relative z-10">
@@ -182,7 +188,7 @@ const SiteHeader = () => {
                                 }
                             }}
                             placeholder="Search for weather, news, tools..."
-                            className="relative flex-grow px-5 py-3 text-sm glass-input border border-white/20 rounded-l-full focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-slate-300 transition-all duration-300"
+                            className="relative flex-grow px-5 py-3 text-sm glass-input border border-slate-300 dark:border-white/20 rounded-l-full focus:ring-2 focus:ring-purple-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-300 transition-all duration-300"
                             aria-label="Search site"
                         />
                         <button 
@@ -201,19 +207,19 @@ const SiteHeader = () => {
                     {showSuggestions && filteredSuggestions.length > 0 && (
                         <div 
                             ref={dropdownRef}
-                            className="absolute top-full mt-3 w-full glass-card-dark rounded-2xl shadow-2xl max-h-96 overflow-hidden z-50"
+                            className="absolute top-full mt-3 w-full bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl max-h-96 overflow-hidden z-50"
                         >
                             <div className="overflow-y-auto max-h-96 custom-scrollbar">
                                 {filteredSuggestions.map((suggestion, index) => (
                                     <button
                                         key={index}
                                         onClick={() => handleSearch(suggestion.path)}
-                                        className="w-full text-left px-5 py-3 hover:bg-gradient-to-r hover:from-blue-600/20 hover:via-purple-600/20 hover:to-pink-600/20 transition-all duration-200 border-b border-white/10 last:border-b-0 group"
+                                        className="w-full text-left px-5 py-3 hover:bg-purple-50 dark:hover:bg-gradient-to-r dark:hover:from-blue-600/20 dark:hover:via-purple-600/20 dark:hover:to-pink-600/20 transition-all duration-200 border-b border-slate-100 dark:border-white/10 last:border-b-0 group"
                                     >
-                                        <div className="font-semibold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-300 group-hover:to-purple-300 group-hover:bg-clip-text transition-all">
+                                        <div className="font-semibold text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-transparent dark:group-hover:bg-gradient-to-r dark:group-hover:from-blue-300 dark:group-hover:to-purple-300 dark:group-hover:bg-clip-text transition-all">
                                             {suggestion.title}
                                         </div>
-                                        <div className="text-xs text-slate-400 group-hover:text-slate-300 mt-1">{suggestion.path}</div>
+                                        <div className="text-xs text-slate-400 group-hover:text-slate-500 dark:group-hover:text-slate-300 mt-1">{suggestion.path}</div>
                                     </button>
                                 ))}
                             </div>

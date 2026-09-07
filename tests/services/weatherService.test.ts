@@ -5,10 +5,17 @@ import {
   searchLocations,
   fetchWeatherForecast 
 } from '@/src/services/weatherService';
-import { OPENWEATHER_API_BASE_URL, OPENWEATHER_API_KEY } from '@/src/lib/constants';
+import { OPENWEATHER_API_BASE_URL, OPENWEATHER_API_KEY, ERROR_MESSAGES } from '@/src/lib/constants';
 
 // Mock axios
-jest.mock('axios');
+jest.mock('axios', () => {
+  const mAxios: any = {
+    get: jest.fn(),
+    create: jest.fn(),
+  };
+  mAxios.create.mockReturnValue(mAxios);
+  return mAxios;
+});
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Mock the mock weather service to avoid fallback during tests
@@ -136,7 +143,7 @@ describe('weatherService', () => {
         }
       });
 
-      await expect(fetchWeatherByCity('InvalidCity')).rejects.toThrow('City not found');
+      await expect(fetchWeatherByCity('InvalidCity')).rejects.toThrow(ERROR_MESSAGES.CITY_NOT_FOUND);
     });
   });
 

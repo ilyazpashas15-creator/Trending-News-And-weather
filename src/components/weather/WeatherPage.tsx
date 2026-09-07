@@ -6,6 +6,8 @@ import WeatherForecast from './WeatherForecast';
 import WeatherCardSkeleton from '../ui/WeatherCardSkeleton';
 import Navbar from '../ui/Navbar';
 import SiteHeader from '../ui/SiteHeader';
+import WeatherAlertBanner from './WeatherAlertBanner';
+import NewsSection from '../ui/NewsSection';
 import { useWeather } from '@/hooks/useWeather';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -182,12 +184,6 @@ const WeatherPage = () => {
 
   return (
     <div className="min-h-screen transition-all duration-500 p-3 sm:p-4 md:p-6 relative overflow-hidden">
-      {/* Neural lattice background */}
-      <div className="neural-lattice"></div>
-      
-      {/* Ambient drifting orbs */}
-      <div className="ambient-orbs"></div>
-
       {/* Main content */}
       <div className="relative z-20 main-content">
 
@@ -203,23 +199,23 @@ const WeatherPage = () => {
                 Weather Forecast
               </h1>
             </div>
-            <p className="text-slate-400 text-sm mt-2 md:mt-0 font-medium">Local time and weather worldwide</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-2 md:mt-0 font-medium">Local time and weather worldwide</p>
           </div>
 
           {/* Simplified Tab Navigation */}
-          <div className="flex gap-2 mb-6 bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 w-fit page-enter">
+          <div className="flex gap-2 mb-6 bg-slate-200/70 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-300/70 dark:border-white/10 rounded-2xl p-1.5 w-fit page-enter">
             <button className="tab-pill active px-5 py-2.5 text-sm font-semibold rounded-xl">
               Weather
             </button>
             <button 
               onClick={() => window.location.href = '/weather/5day'}
-              className="tab-pill px-5 py-2.5 text-sm font-medium rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+              className="tab-pill px-5 py-2.5 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all"
             >
               Forecast
             </button>
             <button 
               onClick={() => window.location.href = '/weather/maps'}
-              className="tab-pill px-5 py-2.5 text-sm font-medium rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+              className="tab-pill px-5 py-2.5 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all"
             >
               Maps
             </button>
@@ -250,7 +246,7 @@ const WeatherPage = () => {
               
               <button
                 onClick={handleCurrentLocationWeather}
-                className="mt-2 text-xs text-blue-300 hover:text-blue-200 transition-colors flex items-center gap-1 mx-auto"
+                className="mt-2 text-xs text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 font-semibold transition-colors flex items-center gap-1 mx-auto"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
@@ -261,6 +257,9 @@ const WeatherPage = () => {
           </div>
 
           <div className="weather-container">
+            {/* Location-based smart weather alerts (Step 05 of Task1.md) */}
+            <WeatherAlertBanner weather={weatherData} />
+
             {error && (
               <div className="relative mb-6 rounded-2xl overflow-hidden page-enter">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl blur opacity-40"></div>
@@ -305,6 +304,11 @@ const WeatherPage = () => {
                   <WeatherForecast forecast={forecastData} />
                 </div>
 
+                {/* Trending News Section on Home Dashboard */}
+                <div className="my-10">
+                  <NewsSection defaultCategory="general" showTitle={true} />
+                </div>
+
                 <div className="my-8 page-enter" style={{ animationDelay: '0.3s' }}>
                   <div className="relative inline-block mb-6">
                     <h2 className="text-2xl md:text-3xl font-extrabold text-gradient section-heading drop-shadow-lg">
@@ -314,21 +318,21 @@ const WeatherPage = () => {
                   
                   <div className="relative rounded-3xl overflow-hidden">
                     {/* Glowing border effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-3xl blur-lg opacity-40"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-3xl blur-lg opacity-20 dark:opacity-40"></div>
                     
                     {/* Glass card container */}
-                    <div className="relative glass-card rounded-3xl shadow-2xl overflow-hidden">
+                    <div className="relative bg-white/95 dark:bg-gradient-to-b dark:from-[#0d1527]/90 dark:to-[#070c18]/95 backdrop-blur-2xl rounded-3xl border border-slate-200/90 dark:border-white/12 shadow-lg dark:shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(99,102,241,0.15),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
                       {/* Ambient background glow inside */}
                       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/15 rounded-full blur-3xl"></div>
                       </div>
                       
                       {/* Table Header - Hidden on mobile */}
-                      <div className="hidden sm:flex relative z-10 items-center justify-between py-4 px-6 bg-white/[0.03] backdrop-blur-sm border-b border-white/10">
-                        <div className="w-1/3 text-xs font-bold text-transparent bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text uppercase tracking-wider">Location</div>
-                        <div className="w-1/3 text-center text-xs font-bold text-transparent bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text uppercase tracking-wider">Local Time</div>
-                        <div className="w-1/3 text-right text-xs font-bold text-transparent bg-gradient-to-r from-pink-300 to-blue-300 bg-clip-text uppercase tracking-wider">Weather</div>
+                      <div className="hidden sm:flex relative z-10 items-center justify-between py-4 px-6 bg-slate-100/80 dark:bg-white/[0.05] backdrop-blur-sm border-b border-slate-200 dark:border-white/10">
+                        <div className="w-1/3 text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Location</div>
+                        <div className="w-1/3 text-center text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Local Time</div>
+                        <div className="w-1/3 text-right text-xs font-bold text-pink-700 dark:text-pink-300 uppercase tracking-wider">Weather</div>
                       </div>
 
                       {/* Clock rows */}

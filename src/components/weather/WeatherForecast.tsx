@@ -7,8 +7,8 @@ interface WeatherForecastProps {
 }
 
 const WeatherForecast = ({ forecast }: WeatherForecastProps) => {
-  if (!forecast) {
-    return <p className="text-slate-500">No forecast data available.</p>;
+  if (!forecast || !forecast.list || forecast.list.length === 0) {
+    return null;
   }
 
   const dailyForecasts = forecast.list.filter((item: any) => {
@@ -34,31 +34,35 @@ const WeatherForecast = ({ forecast }: WeatherForecastProps) => {
       </div>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6 relative z-10">
-        {dailyForecasts.map((forecast: any, index: number) => {
-          const date = new Date(forecast.dt * 1000);
+        {dailyForecasts.map((forecastItem: any, index: number) => {
+          const date = new Date(forecastItem.dt * 1000);
           const day = date.toLocaleDateString('en-US', { weekday: 'short' });
           const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          const tempMin = Math.round(forecast.main.temp_min);
-          const tempMax = Math.round(forecast.main.temp_max);
+          const tempMin = Math.round(forecastItem.main.temp_min);
+          const tempMax = Math.round(forecastItem.main.temp_max);
 
           return (
             <div key={index} className="group relative">
               {/* Glowing border effect */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-15 group-hover:opacity-40 transition duration-300"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-15 dark:opacity-40 group-hover:opacity-40 dark:group-hover:opacity-90 transition duration-300"></div>
               
               {/* Card content */}
-              <div className="relative glass-card glass-card-hover rounded-2xl p-6 text-center hover:border-purple-400/50">
-                <p className="font-extrabold text-gradient-soft text-xl mb-1">{day}</p>
-                <p className="text-sm text-purple-300 mb-4 font-medium">{dateStr}</p>
-                <div className="w-16 h-16 mx-auto my-4 transform group-hover:scale-110 transition-transform duration-300">
+              <div className="relative bg-white/95 dark:bg-gradient-to-b dark:from-[#10192e]/90 dark:via-[#0c1322]/90 dark:to-[#070b14]/90 backdrop-blur-xl rounded-2xl p-5 sm:p-6 text-center border border-slate-200/90 dark:border-white/12 hover:border-purple-400/50 dark:hover:border-purple-400/60 shadow-md dark:shadow-[0_12px_30px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.1)] dark:hover:shadow-[0_20px_45px_rgba(168,85,247,0.3),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-300">
+                <p className="font-extrabold text-slate-900 dark:text-white text-xl mb-1">{day}</p>
+                <div className="mb-3">
+                  <span className="inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/70 dark:border-purple-500/40">
+                    {dateStr}
+                  </span>
+                </div>
+                <div className="w-16 h-16 mx-auto my-3 transform group-hover:scale-110 transition-transform duration-300">
                   <SimpleWeatherIcon
-                    condition={forecast.weather[0].main}
+                    condition={forecastItem.weather[0].main}
                     size="md"
                   />
                 </div>
-                <p className="text-3xl font-extrabold text-gradient-soft mt-4">{tempMax}°</p>
-                <p className="text-xl text-slate-400 mt-1">{tempMin}°</p>
-                <p className="text-sm text-slate-300 capitalize mt-3 opacity-80 group-hover:opacity-100 transition-opacity">{forecast.weather[0].description}</p>
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:via-slate-100 dark:to-blue-200 dark:bg-clip-text mt-3 dark:drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">{tempMax}°</p>
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{tempMin}°</p>
+                <p className="text-xs text-slate-700 dark:text-slate-300 capitalize mt-2 font-medium opacity-90 group-hover:opacity-100 transition-opacity">{forecastItem.weather[0].description}</p>
               </div>
             </div>
           );

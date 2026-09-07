@@ -2,9 +2,9 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#0a0f1e]/90 dark:bg-[#05070f]/90 backdrop-blur-xl text-white border-t border-white/10">
+    <footer className="bg-slate-100/95 dark:bg-gradient-to-b dark:from-[#080d1a]/95 dark:to-[#04060c]/98 backdrop-blur-2xl text-slate-800 dark:text-white border-t border-slate-200 dark:border-white/12 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] transition-colors duration-300">
       {/* Top Feedback Bar */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-3 border-b border-white/10">
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-3 border-b border-white/10 text-white">
         <div className="container mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium">How was your experience?</span>
@@ -44,21 +44,21 @@ const Footer = () => {
                 <span className="text-4xl">❤️</span>
               </div>
             </div>
-            <h3 className="text-lg font-bold mb-2 text-white text-center">Love Our Site?</h3>
-            <p className="text-base text-gray-300 mb-5 text-center">Become a Supporter</p>
+            <h3 className="text-lg font-bold mb-2 text-slate-900 dark:text-white text-center">Love Our Site?</h3>
+            <p className="text-base text-slate-600 dark:text-gray-300 mb-5 text-center">Become a Supporter</p>
             
-            <ul className="space-y-3 text-base text-gray-300 leading-relaxed">
+            <ul className="space-y-3 text-base text-slate-600 dark:text-gray-300 leading-relaxed">
               <li className="flex items-start gap-2">
-                <span className="text-pink-400 mt-1 flex-shrink-0">•</span>
-                <span>Browse our site <strong className="text-white font-semibold">advert free</strong>.</span>
+                <span className="text-pink-500 mt-1 flex-shrink-0">•</span>
+                <span>Browse our site <strong className="text-slate-900 dark:text-white font-semibold">advert free</strong>.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-pink-400 mt-1 flex-shrink-0">•</span>
-                <span>Sun & Moon times <strong className="text-white font-semibold">precise to the second</strong>.</span>
+                <span className="text-pink-500 mt-1 flex-shrink-0">•</span>
+                <span>Sun & Moon times <strong className="text-slate-900 dark:text-white font-semibold">precise to the second</strong>.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-pink-400 mt-1 flex-shrink-0">•</span>
-                <span><strong className="text-white font-semibold">Exclusive calendar templates</strong> for PDF Calendar.</span>
+                <span className="text-pink-500 mt-1 flex-shrink-0">•</span>
+                <span><strong className="text-slate-900 dark:text-white font-semibold">Exclusive calendar templates</strong> for PDF Calendar.</span>
               </li>
             </ul>
           </div>
@@ -69,17 +69,17 @@ const Footer = () => {
               
               {/* Column 2: Company */}
               <div>
-                <h3 className="text-lg font-bold mb-5 text-white">Company</h3>
+                <h3 className="text-lg font-bold mb-5 text-slate-900 dark:text-white">Company</h3>
                 <ul className="space-y-3 text-sm">
-                  <li><a href="/about" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">About us</a></li>
-                  <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Careers/Jobs</a></li>
-                  <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Contact Us</a></li>
-                  <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Contact Details</a></li>
-                  <li><a href="/about" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Sitemap</a></li>
-                  <li><a href="/news/world" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Newsletter</a></li>
+                  <li><a href="/about" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">About us</a></li>
+                  <li><a href="/contact" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Careers/Jobs</a></li>
+                  <li><a href="/contact" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Contact Us</a></li>
+                  <li><a href="/contact" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Contact Details</a></li>
+                  <li><a href="/about" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Sitemap</a></li>
+                  <li><a href="/news/world" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Newsletter</a></li>
                 </ul>
                 
-                <h3 className="text-lg font-bold mt-8 mb-5 text-white">Follow Us</h3>
+                <h3 className="text-lg font-bold mt-8 mb-5 text-slate-900 dark:text-white">Follow Us</h3>
                 <div className="flex gap-3">
                   <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-10 h-10 bg-[#3b5998] hover:bg-[#2d4373] rounded-md flex items-center justify-center transition-all hover:scale-110 shadow-md">
                     <span className="text-white text-base font-bold">f</span>
@@ -101,50 +101,50 @@ const Footer = () => {
               
               {/* Column 3: Legal */}
               <div>
-                <h3 className="text-lg font-bold mb-5 text-white">Legal</h3>
+                <h3 className="text-lg font-bold mb-5 text-slate-900 dark:text-white">Legal</h3>
                 <ul className="space-y-3 text-sm">
-                  <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Link policy</a></li>
-                  <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Advertising</a></li>
-                  <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Disclaimer</a></li>
-                  <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Terms & Conditions</a></li>
-                  <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Privacy Policy</a></li>
-                  <li><a href="/privacy" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Privacy Settings</a></li>
+                  <li><a href="/privacy" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Link policy</a></li>
+                  <li><a href="/contact" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Advertising</a></li>
+                  <li><a href="/privacy" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Disclaimer</a></li>
+                  <li><a href="/privacy" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Terms & Conditions</a></li>
+                  <li><a href="/privacy" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Privacy Policy</a></li>
+                  <li><a href="/privacy" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Privacy Settings</a></li>
                 </ul>
                 
-                <h3 className="text-lg font-bold mt-8 mb-5 text-white">Sites</h3>
+                <h3 className="text-lg font-bold mt-8 mb-5 text-slate-900 dark:text-white">Sites</h3>
                 <ul className="space-y-3 text-sm">
-                  <li><a href="/" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">weatherapp.com</a></li>
-                  <li><a href="/" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">weatherapp.in</a></li>
+                  <li><a href="/" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">weatherapp.com</a></li>
+                  <li><a href="/" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">weatherapp.in</a></li>
                 </ul>
               </div>
               
               {/* Column 4: Services */}
               <div>
-                <h3 className="text-lg font-bold mb-5 text-white">Services</h3>
+                <h3 className="text-lg font-bold mb-5 text-slate-900 dark:text-white">Services</h3>
                 <ul className="space-y-3 text-sm">
-                  <li><a href="/world-clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">World Clock</a></li>
-                  <li><a href="/time-zones/all" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Time Zones</a></li>
-                  <li><a href="/calendar/monthly" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Calendar</a></li>
-                  <li><a href="/" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Weather</a></li>
-                  <li><a href="/sun-moon-space/sunrise-sunset" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Sun & Moon</a></li>
-                  <li><a href="/timers/clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Timers</a></li>
-                  <li><a href="/calculators/date" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Calculators</a></li>
-                  <li><a href="/news/world" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">News</a></li>
-                  <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">API</a></li>
-                  <li><a href="/contact" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">RSS Feeds</a></li>
+                  <li><a href="/world-clock" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">World Clock</a></li>
+                  <li><a href="/time-zones/all" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Time Zones</a></li>
+                  <li><a href="/calendar/monthly" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Calendar</a></li>
+                  <li><a href="/" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Weather</a></li>
+                  <li><a href="/sun-moon-space/sunrise-sunset" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Sun & Moon</a></li>
+                  <li><a href="/timers/clock" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Timers</a></li>
+                  <li><a href="/calculators/date" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Calculators</a></li>
+                  <li><a href="/news/world" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">News</a></li>
+                  <li><a href="/contact" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">API</a></li>
+                  <li><a href="/contact" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">RSS Feeds</a></li>
                 </ul>
               </div>
 
               {/* Column 5: Free Tools */}
               <div>
-                <h3 className="text-lg font-bold mb-5 text-white">Free Tools</h3>
+                <h3 className="text-lg font-bold mb-5 text-slate-900 dark:text-white">Free Tools</h3>
                 <ul className="space-y-3 text-sm">
-                  <li><a href="/world-clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Free Clock Widget</a></li>
-                  <li><a href="/timers/alarm" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Alarm Clock</a></li>
-                  <li><a href="/timers/clock" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Digital Clock</a></li>
-                  <li><a href="/calculators/time" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Time Calculator</a></li>
-                  <li><a href="/calculators/date" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Date Calculator</a></li>
-                  <li><a href="/time-zones/converter" className="text-blue-300 hover:text-blue-200 hover:underline transition-colors">Time Zone Converter</a></li>
+                  <li><a href="/world-clock" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Free Clock Widget</a></li>
+                  <li><a href="/timers/alarm" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Alarm Clock</a></li>
+                  <li><a href="/timers/clock" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Digital Clock</a></li>
+                  <li><a href="/calculators/time" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Time Calculator</a></li>
+                  <li><a href="/calculators/date" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Date Calculator</a></li>
+                  <li><a href="/time-zones/converter" className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:underline transition-colors">Time Zone Converter</a></li>
                 </ul>
               </div>
             </div>
@@ -153,14 +153,14 @@ const Footer = () => {
       </div>
 
       {/* Bottom Copyright Bar */}
-      <div className="bg-[#05070f] border-t border-white/10">
+      <div className="bg-slate-200/80 dark:bg-[#05070f] border-t border-slate-300/80 dark:border-white/10 text-slate-600 dark:text-slate-400 transition-colors duration-300">
         <div className="container mx-auto px-6 py-5">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-3">
               <span className="text-3xl">⛅</span>
-              <span className="font-bold text-white text-xl tracking-wide">My Weather And News</span>
+              <span className="font-bold text-slate-900 dark:text-white text-xl tracking-wide">My Weather And News</span>
             </div>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-slate-600 dark:text-gray-400">
               © My Weather And News {new Date().getFullYear()}
             </p>
           </div>
