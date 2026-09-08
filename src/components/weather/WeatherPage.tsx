@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import WeatherCard from '../ui/WeatherCard';
 import WeatherForecast from './WeatherForecast';
 import WeatherCardSkeleton from '../ui/WeatherCardSkeleton';
 import Navbar from '../ui/Navbar';
-import SiteHeader from '../ui/SiteHeader';
 import WeatherAlertBanner from './WeatherAlertBanner';
 import NewsSection from '../ui/NewsSection';
 import { useWeather } from '@/hooks/useWeather';
@@ -13,101 +12,152 @@ import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import WorldClock from '@/components/world-clock/WorldClock';
 
+// Preset top 5 major states / megacities per country
+const TOP_REGIONAL_CITIES: Record<string, { countryName: string; flag: string; flagCode: string; cities: string[] }> = {
+  IN: {
+    countryName: 'India',
+    flag: '🇮🇳',
+    flagCode: 'in',
+    cities: ['New Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Kolkata'],
+  },
+  US: {
+    countryName: 'United States',
+    flag: '🇺🇸',
+    flagCode: 'us',
+    cities: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Miami'],
+  },
+  GB: {
+    countryName: 'United Kingdom',
+    flag: '🇬🇧',
+    flagCode: 'gb',
+    cities: ['London', 'Manchester', 'Birmingham', 'Edinburgh', 'Glasgow'],
+  },
+  JP: {
+    countryName: 'Japan',
+    flag: '🇯🇵',
+    flagCode: 'jp',
+    cities: ['Tokyo', 'Osaka', 'Kyoto', 'Yokohama', 'Sapporo'],
+  },
+  AU: {
+    countryName: 'Australia',
+    flag: '🇦🇺',
+    flagCode: 'au',
+    cities: ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide'],
+  },
+  CA: {
+    countryName: 'Canada',
+    flag: '🇨🇦',
+    flagCode: 'ca',
+    cities: ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa'],
+  },
+  DE: {
+    countryName: 'Germany',
+    flag: '🇩🇪',
+    flagCode: 'de',
+    cities: ['Berlin', 'Munich', 'Frankfurt', 'Hamburg', 'Cologne'],
+  },
+  FR: {
+    countryName: 'France',
+    flag: '🇫🇷',
+    flagCode: 'fr',
+    cities: ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice'],
+  },
+  AE: {
+    countryName: 'United Arab Emirates',
+    flag: '🇦🇪',
+    flagCode: 'ae',
+    cities: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah'],
+  },
+  GLOBAL: {
+    countryName: 'Global Megacities',
+    flag: '🌍',
+    flagCode: 'un',
+    cities: ['London', 'New York', 'Tokyo', 'Paris', 'Dubai'],
+  },
+};
+
 const WeatherPage = () => {
   const { weatherData, forecastData, loading, error, getWeatherByCity, getCurrentLocationWeather } = useWeather();
   const [animationClass, setAnimationClass] = useState('');
   const { addToast } = useToast();
   const { user, logout, isAuthenticated } = useAuth();
-  const [myCities, setMyCities] = useState<string[]>(['New York', 'Bengaluru', 'Tokyo', 'Bangalore']);
+
+  // Active region tab
+  const [activeRegion, setActiveRegion] = useState<string>('IN');
+  const [myCities, setMyCities] = useState<string[]>(TOP_REGIONAL_CITIES.IN.cities);
+  const [newCityInput, setNewCityInput] = useState('');
+
+  // Auto-detect user's country from timezone on initial mount
+  useEffect(() => {
+    try {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      let detectedCode = 'IN';
+
+      if (timeZone.includes('Calcutta') || timeZone.includes('Kolkata') || timeZone.includes('Asia/Colombo')) {
+        detectedCode = 'IN';
+      } else if (timeZone.startsWith('America/') || timeZone.includes('US/')) {
+        detectedCode = 'US';
+      } else if (timeZone.includes('London') || timeZone.includes('Europe/Belfast')) {
+        detectedCode = 'GB';
+      } else if (timeZone.includes('Tokyo')) {
+        detectedCode = 'JP';
+      } else if (timeZone.includes('Australia/') || timeZone.includes('Sydney') || timeZone.includes('Melbourne')) {
+        detectedCode = 'AU';
+      } else if (timeZone.includes('Toronto') || timeZone.includes('Vancouver') || timeZone.includes('Montreal')) {
+        detectedCode = 'CA';
+      } else if (timeZone.includes('Berlin') || timeZone.includes('Frankfurt')) {
+        detectedCode = 'DE';
+      } else if (timeZone.includes('Paris')) {
+        detectedCode = 'FR';
+      } else if (timeZone.includes('Dubai')) {
+        detectedCode = 'AE';
+      } else {
+        detectedCode = 'GLOBAL';
+      }
+
+      if (TOP_REGIONAL_CITIES[detectedCode]) {
+        setActiveRegion(detectedCode);
+        setMyCities(TOP_REGIONAL_CITIES[detectedCode].cities);
+      }
+    } catch (e) {
+      console.error('Timezone detection error:', e);
+    }
+  }, []);
+
+  // When weather data is fetched and has a country code, sync region if user hasn't manually altered
+  useEffect(() => {
+    if (weatherData?.sys?.country) {
+      const code = weatherData.sys.country.toUpperCase();
+      if (TOP_REGIONAL_CITIES[code] && activeRegion !== code) {
+        setActiveRegion(code);
+        setMyCities(TOP_REGIONAL_CITIES[code].cities);
+      }
+    }
+  }, [weatherData?.sys?.country]);
+
+  const handleRegionSwitch = (regionCode: string) => {
+    setActiveRegion(regionCode);
+    if (TOP_REGIONAL_CITIES[regionCode]) {
+      setMyCities(TOP_REGIONAL_CITIES[regionCode].cities);
+    }
+  };
 
   const handleAddCity = (city: string) => {
-    // Update the main view
-    handleCityChange(city);
+    const trimmed = city.trim();
+    if (!trimmed) return;
+
+    // Update main weather view
+    handleCityChange(trimmed);
 
     // Add to list if not exists
-    if (!myCities.includes(city) && !myCities.some(c => c.toLowerCase() === city.toLowerCase())) {
-      setMyCities(prev => [city, ...prev]);
+    if (!myCities.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+      setMyCities(prev => [trimmed, ...prev]);
     }
+    setNewCityInput('');
   };
 
   const removeCity = (cityToRemove: string) => {
     setMyCities(prev => prev.filter(city => city !== cityToRemove));
-  };
-
-  // Function to map weather icon codes to emoji icons
-  const getWeatherIcon = (iconCode: string) => {
-    if (iconCode.includes('01d') || iconCode.includes('01n')) return '☀️'; // Clear
-    if (iconCode.includes('02d') || iconCode.includes('02n')) return '🌤️'; // Few clouds
-    if (iconCode.includes('03d') || iconCode.includes('03n')) return '☁️'; // Scattered clouds
-    if (iconCode.includes('04d') || iconCode.includes('04n')) return '☁️'; // Broken clouds
-    if (iconCode.includes('09d') || iconCode.includes('09n')) return '🌧️'; // Shower rain
-    if (iconCode.includes('10d') || iconCode.includes('10n')) return '🌦️'; // Rain
-    if (iconCode.includes('11d') || iconCode.includes('11n')) return '⛈️'; // Thunderstorm
-    if (iconCode.includes('13d') || iconCode.includes('13n')) return '❄️'; // Snow
-    if (iconCode.includes('50d') || iconCode.includes('50n')) return '🌫️'; // Mist
-    return '🌤️'; // Default
-  };
-
-  // Function to determine background based on weather condition
-  const getWeatherBackground = () => {
-    if (!weatherData || !weatherData.weather) {
-      // Default background
-      return "bg-gradient-to-br from-blue-50 to-cyan-100";
-    }
-
-    const weatherCondition = weatherData.weather[0].main.toLowerCase();
-    const isDayTime = weatherData.weather[0].icon.endsWith('d'); // Check if it's daytime
-
-    // Temperature is already in Celsius (API uses units: 'metric')
-    const tempCelsius = Math.round(weatherData.main.temp);
-
-    // Map weather conditions to specific gradients
-    if (weatherCondition.includes('clear') || weatherCondition.includes('sunny')) {
-      return isDayTime ? "bg-clear-sky" : "bg-clear-night"; // Clear night for evening/night
-    } else if (weatherCondition.includes('cloud')) {
-      return "bg-cloudy";
-    } else if (weatherCondition.includes('rain') || weatherCondition.includes('drizzle')) {
-      return "bg-rainy";
-    } else if (weatherCondition.includes('snow')) {
-      return "bg-snowy";
-    } else if (weatherCondition.includes('thunderstorm')) {
-      return "bg-thunderstorm";
-    } else if (weatherCondition.includes('fog') || weatherCondition.includes('mist')) {
-      return "bg-foggy";
-    } else if (tempCelsius > 30) {
-      return "bg-hot";
-    } else if (tempCelsius < 0) {
-      return "bg-cold";
-    } else {
-      return "bg-gradient-to-br from-blue-50 to-cyan-100";
-    }
-  };
-
-  // Function to determine city skyline based on city name
-  const getCitySkyline = () => {
-    if (!weatherData || !weatherData.name) {
-      return "/images/site.jpeg"; // Default
-    }
-
-    const city = weatherData.name.toLowerCase();
-
-    // Map city names to their respective skyline images
-    // For now, returning the same placeholder - in a real app, you'd have actual city images
-    switch (city) {
-      case 'new york':
-        return "/images/site.jpeg"; // Would be a skyline of New York
-      case 'london':
-        return "/images/site.jpeg"; // Would be a skyline of London
-      case 'tokyo':
-        return "/images/site.jpeg"; // Would be a skyline of Tokyo
-      case 'paris':
-        return "/images/site.jpeg"; // Would be a skyline of Paris
-      case 'bangalore':
-      case 'bengaluru':
-        return "/images/site.jpeg"; // Would be a skyline of Bangalore
-      default:
-        return "/images/site.jpeg"; // Default city skyline
-    }
   };
 
   useEffect(() => {
@@ -117,70 +167,43 @@ const WeatherPage = () => {
   }, [error, addToast]);
 
   useEffect(() => {
-    // Get weather for a default city on initial load
-    console.log('WeatherPage mounted, fetching Bangalore weather...');
     getWeatherByCity('Bangalore, IN');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run only once on mount
+  }, []);
 
-  // Function to handle city change with flip animation (Task1.md Step 3)
+  // Function to handle city change with flip animation
   const handleCityChange = async (city: string) => {
     try {
-      // Step B (Animate Out): Apply flipOut class to the main weather display container
       setAnimationClass('flip-out');
-
-      // Wait for the flipOut animation to finish (0.5 seconds)
       setTimeout(async () => {
-        // Step C (Wait & Swap): Update the city name, temperature, icons, and background gradient with the new data
         await getWeatherByCity(city);
-
-        // Step D (Animate In): Replace the flipOut class with the flipIn class
         setAnimationClass('flip-in');
-
-        // Step E (Clean Up): Remove the flipIn class once the animation completes
         setTimeout(() => {
-          setAnimationClass(''); // Clear the animation class after it completes
-        }, 500); // Match the animation duration
-      }, 500); // Wait for the duration of the flipOut animation
+          setAnimationClass('');
+        }, 500);
+      }, 500);
     } catch (err) {
       console.error('City change error:', err);
-      setAnimationClass(''); // Clear the animation in case of error
+      setAnimationClass('');
     }
   };
 
-  // Function to handle getting current location weather with flip animation
   const handleCurrentLocationWeather = async () => {
     try {
-      // Step B (Animate Out): Apply flipOut class to the main weather display container
       setAnimationClass('flip-out');
-
-      // Wait for the flipOut animation to finish (0.5 seconds)
       setTimeout(async () => {
-        // Step C (Wait & Swap): Update the weather data by calling the original function
         await getCurrentLocationWeather();
-
-        // Step D (Animate In): Replace flipOut class with flipIn class
         setAnimationClass('flip-in');
-
-        // Step E (Clean Up): Remove the flipIn class once the animation completes
         setTimeout(() => {
-          setAnimationClass(''); // Clear the animation class after it completes
-        }, 500); // Match the animation duration
-      }, 500); // Wait for the duration of the flipOut animation
+          setAnimationClass('');
+        }, 500);
+      }, 500);
     } catch (err) {
       console.error('Current location weather error:', err);
-      setAnimationClass(''); // Clear the animation in case of error
+      setAnimationClass('');
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Optionally add a success toast here
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  };
+  const currentRegionMeta = TOP_REGIONAL_CITIES[activeRegion] || TOP_REGIONAL_CITIES.GLOBAL;
 
   return (
     <div className="min-h-screen transition-all duration-500 p-3 sm:p-4 md:p-6 relative overflow-hidden">
@@ -302,7 +325,7 @@ const WeatherPage = () => {
           </div>
 
           <div className="weather-container">
-            {/* Location-based smart weather alerts (Step 05 of Task1.md) */}
+            {/* Location-based smart weather alerts */}
             <WeatherAlertBanner weather={weatherData} />
 
             {error && (
@@ -354,42 +377,99 @@ const WeatherPage = () => {
                   <NewsSection defaultCategory="general" showTitle={true} />
                 </div>
 
+                {/* ── My Cities (Personal World Clock & Top Regional States) ── */}
                 <div className="my-8 page-enter" style={{ animationDelay: '0.3s' }}>
-                  <div className="relative inline-block mb-6">
-                    <h2 className="text-2xl md:text-3xl font-extrabold text-gradient section-heading drop-shadow-lg">
-                      My Cities (Personal World Clock)
-                    </h2>
-                  </div>
                   
-                  <div className="relative rounded-3xl overflow-hidden">
-                    {/* Glowing border effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-3xl blur-lg opacity-20 dark:opacity-40"></div>
-                    
-                    {/* Glass card container */}
-                    <div className="relative bg-white/95 dark:bg-gradient-to-b dark:from-[#0d1527]/90 dark:to-[#070c18]/95 backdrop-blur-2xl rounded-3xl border border-slate-200/90 dark:border-white/12 shadow-lg dark:shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(99,102,241,0.15),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
-                      {/* Ambient background glow inside */}
-                      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/15 rounded-full blur-3xl"></div>
-                      </div>
+                  {/* Luxury Glass Card Outer Container */}
+                  <div className="relative rounded-[32px] p-1 overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.07)] dark:shadow-[0_25px_80px_-15px_rgba(0,0,0,0.9),0_0_50px_rgba(99,102,241,0.12)]">
+                    {/* Glowing outer aura */}
+                    <div className="absolute -inset-1 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-[34px] blur-2xl opacity-60 dark:opacity-80" />
+
+                    <div className="relative rounded-[30px] bg-white/95 dark:bg-[#0c1326]/95 backdrop-blur-3xl border border-slate-200/90 dark:border-white/12 p-6 sm:p-8 lg:p-10 overflow-hidden">
                       
-                      {/* Table Header - Hidden on mobile */}
-                      <div className="hidden sm:flex relative z-10 items-center justify-between py-4 px-6 bg-slate-100/80 dark:bg-white/[0.05] backdrop-blur-sm border-b border-slate-200 dark:border-white/10">
-                        <div className="w-1/3 text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Location</div>
-                        <div className="w-1/3 text-center text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Local Time</div>
-                        <div className="w-1/3 text-right text-xs font-bold text-pink-700 dark:text-pink-300 uppercase tracking-wider">Weather</div>
+                      {/* Section Top Header: Title & Region Indicator */}
+                      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between pb-6 mb-6 border-b border-slate-100 dark:border-white/[0.08] gap-4">
+                        <div>
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-2xl">🌐</span>
+                            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                              My Cities <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">(Top {currentRegionMeta.countryName} States & Clocks)</span>
+                            </h2>
+                          </div>
+                          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
+                            Live synchronized local time, time offsets, and weather across top regional states and global megacities
+                          </p>
+                        </div>
+
+                        {/* Quick Add City Input */}
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            if (newCityInput.trim()) {
+                              handleAddCity(newCityInput);
+                            }
+                          }}
+                          className="flex items-center gap-2 w-full lg:w-auto"
+                        >
+                          <input
+                            type="text"
+                            value={newCityInput}
+                            onChange={(e) => setNewCityInput(e.target.value)}
+                            placeholder="Add any city..."
+                            className="px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 text-xs font-extrabold rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xs hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+                          >
+                            + Add City
+                          </button>
+                        </form>
                       </div>
 
-                      {/* Clock rows */}
-                      <div className="relative z-10 p-4">
+                      {/* Region Selector Pills */}
+                      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-5 scrollbar-none">
+                        <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider flex-shrink-0">
+                          📍 Country Preset:
+                        </span>
+                        {Object.entries(TOP_REGIONAL_CITIES).map(([code, data]) => {
+                          const isActive = activeRegion === code;
+                          return (
+                            <button
+                              key={code}
+                              onClick={() => handleRegionSwitch(code)}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all flex-shrink-0 ${
+                                isActive
+                                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-purple-500/20 scale-105'
+                                  : 'bg-slate-100/80 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:border-purple-400/50'
+                              }`}
+                            >
+                              <span>{data.flag}</span>
+                              <span>{data.countryName}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Table Column Headers - Desktop */}
+                      <div className="hidden sm:flex items-center justify-between py-3 px-5 mb-3 rounded-xl bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        <div className="w-5/12">Location & State</div>
+                        <div className="w-4/12 text-center">Local Synchronized Time</div>
+                        <div className="w-3/12 text-right">Atmospheric Condition</div>
+                      </div>
+
+                      {/* Clock rows list */}
+                      <div className="space-y-1">
                         {myCities.map((city, index) => (
                           <WorldClock
                             key={`${city}-${index}`}
                             city={city}
                             onDelete={() => removeCity(city)}
+                            onSelectCity={(selected) => handleCityChange(selected)}
                           />
                         ))}
                       </div>
+
                     </div>
                   </div>
                 </div>
