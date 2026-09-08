@@ -187,73 +187,118 @@ const WeatherPage = () => {
       {/* Main content */}
       <div className="relative z-20 main-content">
 
-        {/* Navigation Bar - Using the fixed Navbar component */}
+        {/* Navigation Bar */}
         <Navbar />
-        <SiteHeader />
 
-        <div className="max-w-6xl mx-auto py-8">
+        <div className="max-w-6xl mx-auto py-6 sm:py-8">
 
-          <div className="flex flex-col md:flex-row items-baseline justify-between mb-6 pb-2 page-enter">
-            <div className="relative inline-block">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-gradient drop-shadow-lg tracking-tight section-heading">
-                Weather Forecast
+          {/* Header Title & Section Overview */}
+          <div className="flex flex-col md:flex-row items-center md:items-baseline justify-between mb-6 pb-2 gap-3 text-center md:text-left page-enter">
+            <div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+                Weather <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Forecast & Radar</span>
               </h1>
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1.5 font-medium">
+                Live radar, localized alerts, and real-time meteorological conditions worldwide
+              </p>
             </div>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mt-2 md:mt-0 font-medium">Local time and weather worldwide</p>
-          </div>
 
-          {/* Simplified Tab Navigation */}
-          <div className="flex gap-2 mb-6 bg-slate-200/70 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-300/70 dark:border-white/10 rounded-2xl p-1.5 w-fit page-enter">
-            <button className="tab-pill active px-5 py-2.5 text-sm font-semibold rounded-xl">
-              Weather
-            </button>
-            <button 
-              onClick={() => window.location.href = '/weather/5day'}
-              className="tab-pill px-5 py-2.5 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all"
-            >
-              Forecast
-            </button>
-            <button 
-              onClick={() => window.location.href = '/weather/maps'}
-              className="tab-pill px-5 py-2.5 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10 transition-all"
-            >
-              Maps
-            </button>
-          </div>
-
-          {/* Compact Search Box - Minimal Design */}
-          <div className="mb-6 page-enter" style={{ animationDelay: '0.1s' }}>
-            <div className="max-w-md mx-auto">
-              <form className="relative flex items-center group" role="search" onSubmit={(e) => { e.preventDefault(); const formData = new FormData(e.currentTarget); const city = formData.get('q') as string; handleAddCity(city); e.currentTarget.reset(); }}>
-                {/* Subtle glow effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-pink-600/30 rounded-md blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                
-                <input
-                  type="search"
-                  placeholder="Search for weather, news, tools..."
-                  className="relative w-full px-3 py-2 pl-8 glass-input text-sm rounded-l-md focus:outline-none transition-all"
-                  name="q"
-                />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <button type="submit" className="relative px-5 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white text-sm font-semibold rounded-r-md glow-btn">
-                  Add
-                </button>
-              </form>
-              
+            {/* GPS Location Button */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={handleCurrentLocationWeather}
-                className="mt-2 text-xs text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 font-semibold transition-colors flex items-center gap-1 mx-auto"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-500/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all shadow-xs hover:scale-105 active:scale-95"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                </svg>
-                Use Current Location
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                📍 Use My Location
               </button>
             </div>
+          </div>
+
+          {/* Unified Tab Navigation & Hero Search Bar */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-4 page-enter">
+            {/* Segmented Tab Navigation */}
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-200/70 dark:bg-white/[0.04] border border-slate-300/70 dark:border-white/[0.08] backdrop-blur-xl shadow-xs overflow-x-auto scrollbar-none">
+              <button className="px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-purple-500/25 whitespace-nowrap">
+                🌡️ Live Weather
+              </button>
+              <button 
+                onClick={() => window.location.href = '/weather/5day'}
+                className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10 transition-all whitespace-nowrap"
+              >
+                📅 5-Day Forecast
+              </button>
+              <button 
+                onClick={() => window.location.href = '/weather/maps'}
+                className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10 transition-all whitespace-nowrap"
+              >
+                🗺️ Radar Maps
+              </button>
+              <button 
+                onClick={() => window.location.href = '/weather/hourly'}
+                className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10 transition-all whitespace-nowrap"
+              >
+                ⏱️ Hourly
+              </button>
+            </div>
+
+            {/* Glowing Hero Search Bar */}
+            <div className="w-full lg:max-w-md">
+              <form 
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  const formData = new FormData(e.currentTarget); 
+                  const city = formData.get('q') as string; 
+                  if (city?.trim()) {
+                    handleAddCity(city.trim()); 
+                    e.currentTarget.reset(); 
+                  }
+                }}
+                className="relative flex items-center group" 
+                role="search"
+              >
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full blur opacity-20 group-hover:opacity-60 transition duration-300 pointer-events-none" />
+                <div className="relative w-full flex items-center">
+                  <input
+                    type="search"
+                    name="q"
+                    placeholder="Search any city or location..."
+                    className="w-full px-4 py-2.5 pl-10 pr-24 text-xs sm:text-sm rounded-full bg-white/95 dark:bg-[#0c1324]/90 border border-slate-200/90 dark:border-white/15 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-slate-900 dark:text-white placeholder-slate-400 backdrop-blur-md transition-all shadow-sm"
+                  />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <button
+                    type="submit"
+                    className="absolute right-1.5 px-4 py-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white rounded-full text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95"
+                  >
+                    Search
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Quick Popular City Chips */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-4 scrollbar-none page-enter">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider flex-shrink-0 flex items-center gap-1">
+              <span>🔥</span> Quick Cities:
+            </span>
+            {['Bengaluru', 'New York', 'London', 'Tokyo', 'Paris', 'Dubai', 'Singapore', 'Sydney'].map((c) => (
+              <button
+                key={c}
+                onClick={() => handleAddCity(c)}
+                className="px-3 py-1 rounded-full text-xs font-semibold bg-white/80 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:border-purple-500/50 hover:text-purple-600 dark:hover:text-cyan-300 transition-all flex-shrink-0 shadow-xs hover:scale-105 active:scale-95"
+              >
+                {c}
+              </button>
+            ))}
           </div>
 
           <div className="weather-container">

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import NavbarSearch from './NavbarSearch';
 import NavbarNotifications from './NavbarNotifications';
 import NavbarBookmarks from './NavbarBookmarks';
 import NavbarProfile from './NavbarProfile';
@@ -32,12 +31,15 @@ export const NAVBAR_CATEGORIES: NavCategoryConfig[] = [
     title: 'News',
     icon: '📰',
     items: [
-      { label: 'Technology', href: '/news/tech', description: 'Latest gadgets, software & AI innovations', icon: '💻', badge: 'Tech', badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
+      { label: 'Breaking News', href: '/news/breaking', description: 'Live breaking news & top headlines', icon: '⚡', badge: 'Live', badgeColor: 'bg-rose-500/15 text-rose-600 dark:text-rose-400' },
+      { label: 'World News', href: '/news/world', description: 'Global headlines & international events', icon: '🌐', badge: 'World', badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
+      { label: 'Local News', href: '/news/local', description: 'Regional stories & community updates', icon: '📍', badge: 'Local', badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+      { label: 'Weather News', href: '/news/weather', description: 'Climate, storms & meteorological reports', icon: '🌪️', badge: 'Climate', badgeColor: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400' },
+      { label: 'Technology', href: '/news/tech', description: 'Latest gadgets, software & AI innovations', icon: '💻', badge: 'Tech', badgeColor: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
       { label: 'Sports', href: '/news/sports', description: 'Live scores, highlights & sports updates', icon: '⚽', badge: 'Sports', badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
       { label: 'Finance', href: '/news/finance', description: 'Markets, crypto, and economic trends', icon: '📈', badge: 'Finance', badgeColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
       { label: 'Entertainment', href: '/news/entertainment', description: 'Movies, music, celebrity & pop culture', icon: '🎬', badge: 'Culture', badgeColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400' },
-      { label: 'World News', href: '/news/world', description: 'Global headlines & international events', icon: '🌐', badge: 'World', badgeColor: 'bg-slate-500/15 text-slate-600 dark:text-slate-400' },
-      { label: 'Weather News', href: '/news/weather', description: 'Climate, storms & meteorological reports', icon: '🌪️', badge: 'Climate', badgeColor: 'bg-rose-500/15 text-rose-600 dark:text-rose-400' },
+      { label: 'News Archive', href: '/news/archive', description: 'Search past editions & historical news', icon: '📁', badge: 'Archive', badgeColor: 'bg-slate-500/15 text-slate-600 dark:text-slate-400' },
     ],
   },
   {
@@ -144,7 +146,7 @@ const Navbar: React.FC = () => {
   const navRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Detect scrolling to add elevated shadow
+  // Detect scrolling to add elevated shadow & blur
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -201,185 +203,89 @@ const Navbar: React.FC = () => {
       ref={navRef}
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled
-          ? 'bg-white/95 dark:bg-[#070b14]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 shadow-lg shadow-slate-900/5 dark:shadow-cyan-950/20'
-          : 'bg-white/90 dark:bg-[#070b14]/90 backdrop-blur-lg border-b border-slate-200/50 dark:border-white/5'
+          ? 'bg-white/95 dark:bg-[#070b14]/95 backdrop-blur-2xl border-b border-slate-200/90 dark:border-white/10 shadow-xl shadow-slate-900/5 dark:shadow-[0_15px_35px_rgba(0,0,0,0.6)]'
+          : 'bg-white/90 dark:bg-[#070b14]/90 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/[0.08]'
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-2 sm:px-4 lg:px-6">
-        <div className="flex items-center justify-between h-14 md:h-16 gap-1 sm:gap-2">
+      {/* ── TOP TIER: Brand Logo, Quick Search, Utilities & Account (Desktop & Mobile) ── */}
+      <div className="max-w-[1536px] mx-auto px-3 sm:px-5 lg:px-8 border-b border-slate-100/80 dark:border-white/[0.05]">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-3">
 
-          {/* Desktop Navigation Categories (All 8 categories, visible on lg and above) */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 2xl:gap-2 flex-1 min-w-0" aria-label="Main Navigation">
-            {NAVBAR_CATEGORIES.map((category) => {
-              const isOpen = openDropdown === category.id;
-              // Check if any item in this category is currently active
-              const isActive = category.items.some(item => pathname === item.href || (item.href.startsWith('/#') && pathname === '/'));
-
-              return (
-                <div
-                  key={category.id}
-                  className="relative group flex-shrink-0"
-                  onMouseEnter={() => handleMouseEnter(category.id)}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <button
-                    onClick={() => toggleDropdown(category.id)}
-                    className={`flex items-center gap-1 xl:gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-lg text-xs 2xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-purple-500/40 ${
-                      isOpen || isActive
-                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-sm shadow-purple-500/25'
-                        : 'text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-slate-100/80 dark:hover:bg-white/[0.06]'
-                    }`}
-                    aria-expanded={isOpen}
-                    aria-haspopup="true"
-                  >
-                    <span>{category.title}</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-white' : 'opacity-60 group-hover:opacity-100'
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {/* Mega-Menu Dropdown */}
-                  {isOpen && (
-                    <div
-                      className={`absolute top-full mt-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 rounded-2xl p-2 w-80 shadow-2xl backdrop-blur-2xl border transition-all ${
-                        // Adjust alignment for the rightmost dropdowns to prevent horizontal viewport overflow
-                        category.id === 'calculators' || category.id === 'sunMoonSpace'
-                          ? 'right-0'
-                          : 'left-0'
-                      } bg-white/95 dark:bg-[#0d1526]/95 border-slate-200 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.7)]`}
-                      role="menu"
-                      onMouseEnter={() => handleMouseEnter(category.id)}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      <div className="px-3 py-2 border-b border-slate-100 dark:border-white/10 flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{category.icon}</span>
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
-                            {category.title}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-medium text-purple-600 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-200/50 dark:border-purple-800/40">
-                          {category.items.length} Options
-                        </span>
-                      </div>
-
-                      <div className="space-y-0.5 max-h-[380px] overflow-y-auto scrollbar-none py-1">
-                        {category.items.map((item, idx) => (
-                          <Link
-                            key={idx}
-                            href={item.href}
-                            onClick={() => setOpenDropdown(null)}
-                            className="group/item flex items-start gap-3 p-2.5 rounded-xl transition-all duration-200 hover:bg-slate-100/90 dark:hover:bg-gradient-to-r dark:hover:from-blue-600/15 dark:hover:via-purple-600/15 dark:hover:to-pink-600/15 hover:translate-x-0.5 focus:outline-none focus:ring-1 focus:ring-purple-500/40"
-                            role="menuitem"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/10 flex items-center justify-center text-sm group-hover/item:scale-110 group-hover/item:border-purple-300 dark:group-hover/item:border-purple-500/40 transition-all flex-shrink-0">
-                              {item.icon}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover/item:text-purple-600 dark:group-hover/item:text-cyan-300 transition-colors truncate">
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${item.badgeColor || 'bg-slate-100 text-slate-700'}`}>
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5 group-hover/item:text-slate-600 dark:group-hover/item:text-slate-300">
-                                {item.description}
-                              </p>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          {/* Mobile / Tablet Brand Mark (Visible when desktop navbar links are hidden) */}
-          <div className="flex lg:hidden items-center gap-2">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-md">
-                🌤️
+          {/* Brand Logo & Live Radar Beacon */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-base sm:text-lg font-bold shadow-lg shadow-purple-500/25 group-hover:scale-105 group-hover:shadow-purple-500/40 transition-all duration-200">
+                <span>🌤️</span>
+                <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white dark:border-[#070b14]" />
+                </span>
               </div>
-              <span className="font-extrabold text-sm tracking-tight text-slate-800 dark:text-white">
-                My Weather <span className="text-purple-600 dark:text-purple-400">& News</span>
-              </span>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white leading-tight">
+                    My Weather <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">And News</span>
+                  </span>
+                  <span className="hidden xl:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse" />
+                    LIVE
+                  </span>
+                </div>
+                <span className="hidden sm:inline-block text-[11px] font-medium text-slate-400 dark:text-slate-400 tracking-wider">
+                  Live Global Weather, Radar & Breaking News
+                </span>
+              </div>
             </Link>
           </div>
 
-          {/* Right-side Utilities & Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Right Utilities & Action Controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
 
-            {/* Quick Autocomplete Search (Visible on 2xl screens to avoid squeezing 8 categories) */}
-            <div className="hidden 2xl:block">
-              <NavbarSearch compact />
-            </div>
-
-            {/* Notifications Popover with live weather & news alerts */}
+            {/* Notifications Popover with live alerts */}
             <NavbarNotifications />
 
-            {/* Saved Reads Bookmarks Flyout */}
+            {/* Saved Reads Bookmarks */}
             <NavbarBookmarks />
 
-            {/* Profile Pill Button (Visible on desktop) */}
-            {!isAuthenticated ? (
-              <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-semibold border border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 transition-all duration-200 shadow-sm whitespace-nowrap"
-              >
-                Profile
-              </Link>
-            ) : (
-              <Link
-                href="/profile"
-                className="hidden sm:inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-semibold border border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 transition-all duration-200 shadow-sm whitespace-nowrap"
-              >
-                Profile
-              </Link>
-            )}
+            {/* Subtle Divider */}
+            <div className="hidden sm:block h-6 w-[1px] bg-slate-200 dark:bg-white/10 mx-1" />
 
-            {/* Logout / Login Pill Button (Visible on desktop) */}
+            {/* Profile Pill Button (Visible on desktop) */}
+            <Link
+              href={isAuthenticated ? '/profile' : '/login'}
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-white/[0.06] hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-300 border border-slate-200/80 dark:border-white/10 transition-all duration-200 shadow-sm whitespace-nowrap"
+            >
+              Profile
+            </Link>
+
+            {/* Logout / Sign In Pill Button (Visible on desktop) */}
             {isAuthenticated ? (
               <button
                 onClick={async () => {
                   await logout();
                   router.push('/');
                 }}
-                className="hidden sm:inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-semibold border border-pink-500/40 text-pink-600 dark:text-pink-300 hover:bg-pink-600 hover:text-white dark:hover:bg-pink-600 transition-all duration-200 shadow-sm whitespace-nowrap"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold bg-pink-50 dark:bg-pink-950/40 border border-pink-500/30 text-pink-700 dark:text-pink-300 hover:bg-pink-600 hover:text-white dark:hover:bg-pink-600 transition-all duration-200 shadow-sm whitespace-nowrap"
               >
                 Logout
               </button>
             ) : (
               <Link
                 href="/login"
-                className="hidden sm:inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-semibold border border-pink-500/40 text-pink-600 dark:text-pink-300 hover:bg-pink-600 hover:text-white dark:hover:bg-pink-600 transition-all duration-200 shadow-sm whitespace-nowrap"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white transition-all duration-200 shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-95 whitespace-nowrap"
               >
                 Logout
               </Link>
             )}
 
-            {/* Theme Toggle (Light / Dark) */}
-            <div className="flex items-center">
+            {/* Theme Toggle */}
+            <div className="flex items-center pl-1">
               <ThemeToggle />
             </div>
 
-            {/* Mobile / Tablet Hamburger Button */}
+            {/* Mobile Hamburger Button */}
             <button
-              onClick={() => setMobileMenuOpen(prev => !prev)}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
               className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               aria-label={mobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
               aria-expanded={mobileMenuOpen}
@@ -395,6 +301,114 @@ const Navbar: React.FC = () => {
               )}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* ── BOTTOM TIER: 8 Category Navigation Ribbon (Spacious & Clean on Desktop) ── */}
+      <div className="hidden lg:block bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.03]">
+        <div className="max-w-[1536px] mx-auto px-3 sm:px-5 lg:px-8">
+          <nav className="flex items-center justify-between py-1.5" aria-label="Main Navigation">
+            <div className="flex items-center gap-1 xl:gap-2 flex-wrap">
+              {NAVBAR_CATEGORIES.map((category) => {
+                const isOpen = openDropdown === category.id;
+                const isActive = category.items.some(
+                  (item) => pathname === item.href || (item.href.startsWith('/#') && pathname === '/')
+                );
+
+                return (
+                  <div
+                    key={category.id}
+                    className="relative group flex-shrink-0"
+                    onMouseEnter={() => handleMouseEnter(category.id)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <button
+                      onClick={() => toggleDropdown(category.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs xl:text-sm font-bold tracking-tight transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-purple-500/40 ${
+                        isOpen || isActive
+                          ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-purple-500/25'
+                          : 'text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm'
+                      }`}
+                      aria-expanded={isOpen}
+                      aria-haspopup="true"
+                    >
+                      <span aria-hidden="true" className="text-xs opacity-90">{category.icon}</span>
+                      <span>{category.title}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-white' : 'opacity-50 group-hover:opacity-100'
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Mega-Menu Dropdown */}
+                    {isOpen && (
+                      <div
+                        className={`absolute top-full mt-2 z-50 animate-in fade-in zoom-in-95 duration-150 rounded-2xl p-3 w-80 sm:w-96 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-3xl bg-white/95 dark:bg-[#0c1427]/95 border border-slate-200/90 dark:border-white/10 ${
+                          category.id === 'calculators' || category.id === 'sunMoonSpace'
+                            ? 'right-0'
+                            : 'left-0'
+                        }`}
+                        role="menu"
+                        onMouseEnter={() => handleMouseEnter(category.id)}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <div className="px-3.5 py-2.5 bg-gradient-to-r from-slate-100/90 to-purple-50/50 dark:from-white/[0.04] dark:to-purple-950/30 rounded-xl border border-slate-200/60 dark:border-white/5 flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{category.icon}</span>
+                            <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                              {category.title}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-purple-600 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800/50">
+                            {category.items.length} Modules
+                          </span>
+                        </div>
+
+                        <div className="space-y-0.5 max-h-[380px] overflow-y-auto scrollbar-none py-1">
+                          {category.items.map((item, idx) => (
+                            <Link
+                              key={idx}
+                              href={item.href}
+                              onClick={() => setOpenDropdown(null)}
+                              className="group/item flex items-start gap-3 p-2.5 rounded-xl transition-all duration-200 hover:bg-slate-100/90 dark:hover:bg-gradient-to-r dark:hover:from-blue-600/15 dark:hover:via-purple-600/15 dark:hover:to-pink-600/15 hover:translate-x-1 focus:outline-none focus:ring-1 focus:ring-purple-500/40 border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
+                              role="menuitem"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/10 flex items-center justify-center text-sm group-hover/item:scale-110 group-hover/item:border-purple-300 dark:group-hover/item:border-purple-500/40 transition-all flex-shrink-0 shadow-sm">
+                                {item.icon}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover/item:text-purple-600 dark:group-hover/item:text-cyan-300 transition-colors truncate">
+                                    {item.label}
+                                  </span>
+                                  {item.badge && (
+                                    <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full flex-shrink-0 uppercase tracking-wider ${item.badgeColor || 'bg-slate-100 text-slate-700'}`}>
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5 group-hover/item:text-slate-600 dark:group-hover/item:text-slate-300">
+                                  {item.description}
+                                </p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </nav>
         </div>
       </div>
 
