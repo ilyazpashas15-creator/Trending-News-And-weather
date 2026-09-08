@@ -451,15 +451,8 @@ const WeatherPage = () => {
                         })}
                       </div>
 
-                      {/* Table Column Headers - Desktop */}
-                      <div className="hidden sm:flex items-center justify-between py-3 px-5 mb-3 rounded-xl bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        <div className="w-5/12">Location & State</div>
-                        <div className="w-4/12 text-center">Local Synchronized Time</div>
-                        <div className="w-3/12 text-right">Atmospheric Condition</div>
-                      </div>
-
-                      {/* Clock rows list */}
-                      <div className="space-y-1">
+                      {/* Clock cards grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                         {myCities.map((city, index) => (
                           <WorldClock
                             key={`${city}-${index}`}
