@@ -133,7 +133,7 @@ const NavbarNotifications: React.FC = () => {
 
       {/* Notifications Popover Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white/95 dark:bg-[#0c1324]/95 backdrop-blur-2xl border border-slate-200/90 dark:border-white/15 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-full sm:mt-2 sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-none bg-white/95 dark:bg-[#0c1324]/95 backdrop-blur-2xl border border-slate-200/90 dark:border-white/15 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
