@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Inter, Outfit } from 'next/font/google';
+import { Inter, Outfit, Plus_Jakarta_Sans } from 'next/font/google';
 import ClientWrapper from './ClientWrapper';
 import { ThemeProvider } from '@/context/ThemeContext';
 import Footer from '@/components/ui/Footer';
@@ -14,6 +14,12 @@ const inter = Inter({
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
+  display: 'swap',
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
   display: 'swap',
 });
 
@@ -131,7 +137,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.className} ${outfit.variable} bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 antialiased transition-colors duration-300 selection:bg-purple-500 selection:text-white`}
+        className={`${plusJakartaSans.variable} ${inter.variable} ${outfit.variable} font-sans bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 antialiased transition-colors duration-300 selection:bg-purple-500 selection:text-white`}
       >
         {/* Ambient background layers */}
         <div className="neural-lattice pointer-events-none" aria-hidden="true" />

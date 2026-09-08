@@ -365,7 +365,7 @@ const WeatherPage = () => {
             ) : (
               <div className={`transition-all duration-500 ${animationClass}`}>
                 <div className="w-full">
-                  {weatherData && <WeatherCard weather={weatherData} />}
+                  {weatherData && <WeatherCard weather={weatherData} forecast={forecastData} />}
                 </div>
 
                 <div className="mt-8">
