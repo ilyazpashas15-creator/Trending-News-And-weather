@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import CitySearch from '../../../components/world-clock/CitySearch';
 import TimezoneCard from '../../../components/world-clock/TimezoneCard';
 import { City, POPULAR_CITIES } from '../../../utils/cityDatabase';
@@ -12,7 +12,6 @@ import {
   isDSTActive,
   getTimeDifference,
   formatTimeDifference,
-  getRelativeTimeDescription,
   calculateOptimalMeetingTimes,
   MeetingTime
 } from '../../../services/timezoneService';
@@ -23,16 +22,29 @@ interface TimezoneEntry {
 }
 
 export default function TimezoneConverterPage() {
-  // Selected timezones
   const [selectedCities, setSelectedCities] = useState<TimezoneEntry[]>([]);
   const [referenceCity, setReferenceCity] = useState<City | null>(null);
-  
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Sync theme
+  useEffect(() => {
+    setMounted(true);
+    setIsDark(document.documentElement.classList.contains('dark'));
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   // Date/Time picker state
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const now = new Date();
-    return now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm format
+    return now.toISOString().slice(0, 16);
   });
-  
+
   // Conversion results
   const [conversionResults, setConversionResults] = useState<Array<{
     city: City;
@@ -42,20 +54,20 @@ export default function TimezoneConverterPage() {
     isDST: boolean;
     timeDiff: string;
   }>>([]);
-  
+
   // Meeting planner results
   const [meetingTimes, setMeetingTimes] = useState<MeetingTime[]>([]);
-  
+
   // DST warnings
   const [dstWarnings, setDstWarnings] = useState<Array<{
     city: City;
     warning: string;
   }>>([]);
 
-  // Initialize with some popular cities
+  // Initialize with initial cities
   useEffect(() => {
     if (selectedCities.length === 0) {
-      const initialCities = POPULAR_CITIES.slice(0, 3).map((city, index) => ({
+      const initialCities = POPULAR_CITIES.slice(0, 4).map((city, index) => ({
         city,
         id: `${city.id}-${index}`
       }));
@@ -64,44 +76,32 @@ export default function TimezoneConverterPage() {
     }
   }, []);
 
-  // Add a new city
   const handleAddCity = useCallback((city: City) => {
     if (selectedCities.length >= 10) {
       alert('Maximum 10 timezones allowed. Please remove one first.');
       return;
     }
-    
-    // Check if city already exists
     const exists = selectedCities.some(entry => entry.city.id === city.id);
-    if (exists) {
-      alert(`${city.name} is already added.`);
-      return;
-    }
+    if (exists) return;
 
-    setSelectedCities(prev => [...prev, {
-      city,
-      id: `${city.id}-${Date.now()}`
-    }]);
+    setSelectedCities(prev => [...prev, { city, id: `${city.id}-${Date.now()}` }]);
   }, [selectedCities]);
 
-  // Remove a city
   const handleRemoveCity = useCallback((cityId: string) => {
     setSelectedCities(prev => prev.filter(entry => entry.id !== cityId));
   }, []);
 
-  // Set as reference
   const handleSetReference = useCallback((city: City) => {
     setReferenceCity(city);
   }, []);
 
-  // Calculate conversions when date or cities change
+  // Calculate conversions
   useEffect(() => {
     if (selectedCities.length === 0 || !selectedDate) return;
 
     const baseDate = new Date(selectedDate);
     const refTimezone = referenceCity?.timezone || selectedCities[0]?.city.timezone || 'UTC';
 
-    // Calculate conversion results
     const results = selectedCities.map(({ city }) => {
       try {
         const convertedDate = convertTimeBetweenZones(refTimezone, city.timezone, baseDate);
@@ -118,7 +118,6 @@ export default function TimezoneConverterPage() {
           timeDiff: formatTimeDifference(timeDiff)
         };
       } catch (error) {
-        console.error(`Error converting time for ${city.name}:`, error);
         return {
           city,
           localTime: 'Error',
@@ -132,389 +131,290 @@ export default function TimezoneConverterPage() {
 
     setConversionResults(results);
 
-    // Check for DST warnings
+    // Warnings
     const warnings: Array<{ city: City; warning: string }> = [];
     selectedCities.forEach(({ city }) => {
       const convertedDate = convertTimeBetweenZones(refTimezone, city.timezone, baseDate);
       if (isDSTActive(city.timezone, convertedDate)) {
-        warnings.push({
-          city,
-          warning: 'Daylight Saving Time is active'
-        });
+        warnings.push({ city, warning: 'Daylight Saving Time is active' });
       }
     });
     setDstWarnings(warnings);
 
-    // Calculate optimal meeting times
+    // Meeting planner
     if (selectedCities.length >= 2) {
       const timezones = selectedCities.map(({ city }) => city.timezone);
       const optimalTimes = calculateOptimalMeetingTimes(timezones, 60, 6, 22, 9, 17);
-      setMeetingTimes(optimalTimes.slice(0, 5));
+      setMeetingTimes(optimalTimes.slice(0, 4));
     }
   }, [selectedDate, selectedCities, referenceCity]);
 
-  // Copy results to clipboard
   const handleCopyResults = useCallback(() => {
     const refCity = referenceCity || selectedCities[0]?.city;
     if (!refCity) return;
 
     let text = `Timezone Conversion Results\n`;
     text += `Reference: ${refCity.name}, ${refCity.country}\n`;
-    text += `Date/Time: ${new Date(selectedDate).toLocaleString()}\n\n`;
-    
+    text += `Target Date/Time: ${new Date(selectedDate).toLocaleString()}\n\n`;
+
     conversionResults.forEach(result => {
-      text += `${result.city.name}, ${result.city.country}\n`;
-      text += `  Time: ${result.localTime} (${result.localDate})\n`;
-      text += `  Offset: ${result.offset}\n`;
-      text += `  Difference: ${result.timeDiff}\n`;
-      if (result.isDST) text += `  DST: Active\n`;
-      text += `\n`;
+      text += `${result.city.name}, ${result.city.country}: ${result.localTime} (${result.localDate}) [${result.offset}]\n`;
     });
 
     navigator.clipboard.writeText(text).then(() => {
-      alert('Results copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy:', err);
-    });
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2500);
+    }).catch(err => console.error('Failed to copy:', err));
   }, [conversionResults, referenceCity, selectedCities, selectedDate]);
 
-  // Time difference matrix
-  const renderTimeDifferenceMatrix = () => {
-    if (selectedCities.length < 2) return null;
-
-    return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr>
-              <th className="p-2 text-left text-slate-400 font-medium"></th>
-              {selectedCities.map(({ city }) => (
-                <th key={city.id} className="p-2 text-center text-slate-300 font-medium">
-                  {city.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {selectedCities.map(({ city: fromCity }) => (
-              <tr key={fromCity.id}>
-                <td className="p-2 text-slate-300 font-medium">{fromCity.name}</td>
-                {selectedCities.map(({ city: toCity }) => {
-                  const diff = getTimeDifference(fromCity.timezone, toCity.timezone, new Date(selectedDate));
-                  const formatted = formatTimeDifference(diff);
-                  return (
-                    <td 
-                      key={toCity.id} 
-                      className={`
-                        p-2 text-center rounded-lg
-                        ${diff === 0 ? 'text-slate-400 bg-slate-800/30' : 
-                          diff > 0 ? 'text-green-400 bg-green-500/10' : 
-                          'text-orange-400 bg-orange-500/10'}
-                      `}
-                    >
-                      {formatted}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
+  const T = {
+    bgPage: isDark
+      ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)'
+      : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark
+      ? 'radial-gradient(circle 800px at 20% 0%, rgba(99,102,241,0.08), transparent 70%), radial-gradient(circle 600px at 80% 20%, rgba(14,165,233,0.06), transparent 70%)'
+      : 'radial-gradient(circle 800px at 20% 0%, rgba(99,102,241,0.04), transparent 70%), radial-gradient(circle 600px at 80% 20%, rgba(14,165,233,0.03), transparent 70%)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.85)' : '#ffffff',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    subheading: isDark ? '#94a3b8' : '#64748b',
+    footerText: isDark ? '#64748b' : '#94a3b8',
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen overflow-x-hidden transition-colors duration-200" style={{ background: T.bgPage }}>
+      <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-0" style={{ background: T.ambientOrbs }} />
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+      <div className="relative z-10 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-7 pb-16">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+        <header className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 shadow-xs bg-blue-500/10 border border-blue-500/25">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              Multi-Zone Converter · Astronomical Accuracy
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">
             Time Zone Converter
           </h1>
-          <p className="text-lg text-slate-400">
-            Convert time across multiple locations worldwide
+          <p className="text-xs sm:text-sm max-w-md mx-auto" style={{ color: T.subheading }}>
+            Compare hours, calculate relative time differences, and discover overlap windows across global business hubs.
           </p>
-        </div>
+        </header>
 
-        {/* Search Section */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <CitySearch 
-            onCitySelect={handleAddCity}
-            placeholder="Search for a city to add..."
-            maxResults={10}
-          />
-          <p className="text-center text-sm text-slate-500 mt-2">
-            {selectedCities.length}/10 cities added
-          </p>
-        </div>
+        {/* Search & Control Panel */}
+        <div
+          className="rounded-2xl p-4 sm:p-5 mb-8 backdrop-blur-xl"
+          style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+            {/* Search Input */}
+            <div className="lg:col-span-6">
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 text-slate-700 dark:text-slate-300">
+                Add City to Compare ({selectedCities.length}/10)
+              </label>
+              <CitySearch onCitySelect={handleAddCity} placeholder="Search city or country to add..." maxResults={8} />
+            </div>
 
-        {/* Date/Time Picker */}
-        <div className="max-w-md mx-auto mb-8">
-          <label className="block text-sm font-medium text-slate-400 mb-2 text-center">
-            Select Date & Time for Conversion
-          </label>
-          <div className="flex gap-3">
-            <input
-              type="datetime-local"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-4 py-3 bg-slate-800/50 backdrop-blur-md border border-slate-600/50 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-            />
-            <button
-              onClick={() => setSelectedDate(new Date().toISOString().slice(0, 16))}
-              className="px-4 py-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-xl transition-all duration-200 text-sm font-medium"
-            >
-              Now
-            </button>
-          </div>
-        </div>
-
-        {/* DST Warnings */}
-        {dstWarnings.length > 0 && (
-          <div className="max-w-4xl mx-auto mb-6">
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 text-amber-400 mt-0.5" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
+            {/* Date & Time Picker */}
+            <div className="lg:col-span-6">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  Target Date &amp; Time
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate(new Date().toISOString().slice(0, 16))}
+                  className="text-[11px] font-semibold text-blue-600 dark:text-sky-400 hover:underline cursor-pointer"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-                  />
-                </svg>
-                <div>
-                  <h3 className="text-sm font-medium text-amber-400">DST Active</h3>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Daylight Saving Time is currently active in: {dstWarnings.map(w => w.city.name).join(', ')}
-                  </p>
-                </div>
+                  Reset to Now
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="datetime-local"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="flex-1 px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 font-mono"
+                />
               </div>
             </div>
           </div>
+        </div>
+
+        {/* DST Warning notice if active */}
+        {dstWarnings.length > 0 && (
+          <div className="mb-6 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+            <span className="text-sm">⚠️</span>
+            <span>
+              <strong>Daylight Saving Time:</strong> Active in {dstWarnings.map(w => w.city.name).join(', ')}.
+            </span>
+          </div>
         )}
 
-        {/* Timezone Cards Grid */}
+        {/* Selected City Cards */}
         {selectedCities.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-xl font-semibold text-white mb-4 text-center">
-              Current Time
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Active Timezone Hubs ({selectedCities.length})
+              </h2>
+              {selectedCities.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Reference:</span>
+                  <select
+                    value={referenceCity?.id || ''}
+                    onChange={(e) => {
+                      const found = selectedCities.find(c => c.city.id === e.target.value)?.city;
+                      if (found) handleSetReference(found);
+                    }}
+                    className="text-xs font-semibold px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    {selectedCities.map(({ city }) => (
+                      <option key={city.id} value={city.id}>
+                        {city.name} ({city.country})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {selectedCities.map(({ city, id }) => (
                 <TimezoneCard
                   key={id}
                   city={city}
                   referenceTimezone={referenceCity?.timezone}
-                  onRemove={handleRemoveCity}
-                  className="cursor-pointer"
+                  onRemove={selectedCities.length > 1 ? handleRemoveCity : undefined}
                 />
               ))}
             </div>
           </div>
         )}
 
-        {/* Reference Selector */}
-        {selectedCities.length > 1 && (
-          <div className="max-w-md mx-auto mb-8">
-            <label className="block text-sm font-medium text-slate-400 mb-2">
-              Reference Timezone
-            </label>
-            <select
-              value={referenceCity?.id || ''}
-              onChange={(e) => {
-                const city = selectedCities.find(c => c.city.id === e.target.value)?.city;
-                if (city) handleSetReference(city);
-              }}
-              className="w-full px-4 py-3 bg-slate-800/50 backdrop-blur-md border border-slate-600/50 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-            >
-              {selectedCities.map(({ city }) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}, {city.country}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
         {/* Conversion Results Table */}
         {conversionResults.length > 0 && (
-          <div className="max-w-4xl mx-auto mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">
-                Conversion Results
-              </h2>
+          <div
+            className="rounded-2xl overflow-hidden mb-10 backdrop-blur-xl"
+            style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+          >
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Conversion Summary
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Target reference: {referenceCity?.name ?? 'Base'} at {new Date(selectedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+
               <button
+                type="button"
                 onClick={handleCopyResults}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-lg transition-all duration-200 text-sm font-medium"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40 hover:bg-blue-100 transition-all cursor-pointer"
               >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-4 w-4" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" 
-                  />
-                </svg>
-                Copy Results
+                <span>{copySuccess ? '✓ Copied!' : 'Copy Summary'}</span>
               </button>
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-600/30 rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-slate-700/50">
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Location</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Local Time</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Date</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Offset</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Difference</th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-300">DST</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-700/50">
-                    {conversionResults.map((result, index) => (
-                      <tr key={index} className="hover:bg-slate-700/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-white">{result.city.name}</div>
-                          <div className="text-sm text-slate-400">{result.city.country}</div>
-                        </td>
-                        <td className="px-4 py-3 text-slate-200 font-mono">{result.localTime}</td>
-                        <td className="px-4 py-3 text-slate-300">{result.localDate}</td>
-                        <td className="px-4 py-3 text-slate-400">{result.offset}</td>
-                        <td className="px-4 py-3">
-                          <span className={`
-                            ${result.timeDiff === 'Same time' ? 'text-slate-400' : 
-                              result.timeDiff.includes('+') ? 'text-green-400' : 'text-orange-400'}
-                          `}>
-                            {result.timeDiff}
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    <th className="px-4 py-3 font-semibold">City / Country</th>
+                    <th className="px-4 py-3 font-semibold">Converted Time</th>
+                    <th className="px-4 py-3 font-semibold">Date</th>
+                    <th className="px-4 py-3 font-semibold">UTC Offset</th>
+                    <th className="px-4 py-3 font-semibold">Difference</th>
+                    <th className="px-4 py-3 font-semibold text-center">DST</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {conversionResults.map((res, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">
+                        {res.city.name} <span className="font-normal text-slate-400 dark:text-slate-500">({res.city.country})</span>
+                      </td>
+                      <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-sky-400">
+                        {res.localTime}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                        {res.localDate}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-slate-500">
+                        {res.offset}
+                      </td>
+                      <td className="px-4 py-3 font-semibold">
+                        <span className={res.timeDiff.includes('+') ? 'text-emerald-600 dark:text-emerald-400' : res.timeDiff === 'Same time' ? 'text-slate-400' : 'text-amber-600 dark:text-amber-400'}>
+                          {res.timeDiff}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {res.isDST ? (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                            DST
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {result.isDST ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400">
-                              Active
-                            </span>
-                          ) : (
-                            <span className="text-slate-500">-</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* Time Difference Matrix */}
-        {selectedCities.length >= 2 && (
-          <div className="max-w-4xl mx-auto mb-10">
-            <h2 className="text-xl font-semibold text-white mb-4">
-              Time Difference Matrix
-            </h2>
-            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-600/30 rounded-xl p-4 overflow-x-auto">
-              {renderTimeDifferenceMatrix()}
-            </div>
-          </div>
-        )}
-
-        {/* Meeting Planner */}
+        {/* Optimal Meeting Window suggestions */}
         {meetingTimes.length > 0 && (
-          <div className="max-w-4xl mx-auto mb-10">
-            <h2 className="text-xl font-semibold text-white mb-4">
-              Optimal Meeting Times
-            </h2>
-            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-600/30 rounded-xl p-4">
-              <p className="text-sm text-slate-400 mb-4">
-                Best times for meetings across all selected timezones (9 AM - 5 PM business hours)
-              </p>
-              <div className="space-y-3">
-                {meetingTimes.slice(0, 3).map((meeting, index) => (
-                  <div 
-                    key={index}
-                    className={`
-                      p-4 rounded-lg border
-                      ${meeting.allInBusinessHours 
-                        ? 'bg-green-500/10 border-green-500/30' 
-                        : 'bg-slate-700/30 border-slate-600/30'}
-                    `}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-white">
-                        {meeting.utcTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} UTC
-                      </span>
-                      <span className={`
-                        text-sm
-                        ${meeting.allInBusinessHours ? 'text-green-400' : 'text-amber-400'}
-                      `}>
-                        {meeting.allInBusinessHours ? 'All in business hours' : `${meeting.localTimes.filter(t => t.isBusinessHours).length}/${meeting.localTimes.length} in business hours`}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {meeting.localTimes.map((local, i) => (
-                        <div 
-                          key={i}
-                          className={`
-                            text-xs p-2 rounded
-                            ${local.isBusinessHours 
-                              ? 'bg-green-500/20 text-green-300' 
-                              : 'bg-slate-600/30 text-slate-400'}
-                          `}
-                        >
-                          <div className="font-medium">{local.timezone.split('/').pop()?.replace(/_/g, ' ')}</div>
-                          <div>{local.time}</div>
-                        </div>
-                      ))}
-                    </div>
+          <div
+            className="rounded-2xl p-4 sm:p-5 backdrop-blur-xl"
+            style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+          >
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-2">
+              Recommended Overlapping Meeting Windows
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Hours calculated where participant locations overlap within business waking hours (9 AM – 5 PM).
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {meetingTimes.map((m, i) => (
+                <div
+                  key={i}
+                  className={`p-3 rounded-xl border text-xs ${
+                    m.allInBusinessHours
+                      ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300'
+                      : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between font-bold mb-1.5">
+                    <span>{m.utcTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC</span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {m.allInBusinessHours ? '✓ Optimal' : 'Partial'}
+                    </span>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-1 text-[11px] opacity-80">
+                    {m.localTimes.map((lt, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <span className="truncate max-w-[120px]">{lt.timezone.split('/').pop()?.replace(/_/g, ' ')}</span>
+                        <span className="font-mono">{lt.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Empty State */}
-        {selectedCities.length === 0 && (
-          <div className="text-center py-20">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-16 w-16 mx-auto mb-4 text-slate-600" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={1} 
-                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-              />
-            </svg>
-            <p className="text-slate-500 text-lg mb-2">No cities added yet</p>
-            <p className="text-slate-600">Use the search above to add timezones</p>
-          </div>
-        )}
+        <footer className="text-center text-xs mt-10" style={{ color: T.footerText }}>
+          <span>High-precision timezone cross-calculation</span>
+          <span className="mx-2">·</span>
+          <span>Automatic Daylight Saving Time (DST) detection</span>
+        </footer>
       </div>
     </div>
   );

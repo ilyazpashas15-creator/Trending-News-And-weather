@@ -11,18 +11,22 @@ interface ClientWrapperProps {
 
 export default function ClientWrapper({ children }: ClientWrapperProps) {
   useEffect(() => {
-    // Register Service Worker for performance and caching (Step 04)
+    // Unregister any active service worker and clear cache on localhost
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('Service Worker registered successfully with scope:', registration.scope);
-          })
-          .catch((error) => {
-            console.warn('Service Worker registration skipped or failed:', error);
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister().then(() => {
+            console.log('[SW] Unregistered service worker');
           });
+        }
       });
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          for (const name of names) {
+            caches.delete(name);
+          }
+        });
+      }
     }
   }, []);
 

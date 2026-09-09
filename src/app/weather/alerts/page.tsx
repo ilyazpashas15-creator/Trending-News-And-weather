@@ -1,220 +1,234 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWeather } from '@/hooks/useWeather';
-import { WeatherData } from '@/types/weather.types';
+import { AlertTriangle, ShieldCheck, Search, Wind, CloudLightning, Waves, Flame, Bell, Info } from 'lucide-react';
 
-// Define alert types
 interface WeatherAlert {
-  id: number;
-  sender_name: string;
+  id: string;
+  sender: string;
+  severity: 'Warning' | 'Watch' | 'Advisory';
   event: string;
-  start: number; // Unix timestamp
-  end: number;   // Unix timestamp
-  description: string;
-  tags: string[];
   area: string;
+  timeframe: string;
+  description: string;
+  instructions: string;
+  icon: string;
 }
 
-export default function SevereWeatherAlertsPage() {
-  const { weatherData, loading, error, getWeatherByCity } = useWeather();
-  const [city, setCity] = useState<string>('Bengaluru'); // Default city
-  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
-  const [noAlerts, setNoAlerts] = useState<boolean>(true);
+const SAMPLE_ALERTS: { [city: string]: WeatherAlert[] } = {
+  florida: [
+    {
+      id: 'fl-1',
+      sender: 'National Weather Service Miami FL',
+      severity: 'Warning',
+      event: 'Severe Thunderstorm Warning',
+      area: 'Miami-Dade and Broward Counties',
+      timeframe: 'Until 6:30 PM EDT',
+      description: 'Doppler radar indicated a line of severe storms capable of producing 60 mph wind gusts and penny-sized hail.',
+      instructions: 'Move to an interior room on the lowest floor of a sturdy building. Avoid windows and secure outdoor furniture.',
+      icon: 'thunder',
+    },
+  ],
+  texas: [
+    {
+      id: 'tx-1',
+      sender: 'NWS Storm Prediction Center',
+      severity: 'Watch',
+      event: 'Tornado Watch',
+      area: 'North & Central Texas',
+      timeframe: 'Until 10:00 PM CDT',
+      description: 'Conditions are favorable for the development of severe thunderstorms capable of producing tornadoes, large hail, and damaging winds.',
+      instructions: 'Review emergency plans, check weather radio batteries, and be prepared to take immediate shelter if a warning is issued.',
+      icon: 'wind',
+    },
+  ],
+  colorado: [
+    {
+      id: 'co-1',
+      sender: 'NWS Denver/Boulder CO',
+      severity: 'Advisory',
+      event: 'Winter Weather Advisory',
+      area: 'Front Range Foothills and Continental Divide',
+      timeframe: 'Through 8:00 AM MDT Tomorrow',
+      description: 'Snow accumulations of 4 to 8 inches above 8,000 feet. Road surfaces will become slick and hazardous.',
+      instructions: 'Slow down and use caution while driving. Keep an extra flashlight, food, and water in your vehicle in case of an emergency.',
+      icon: 'snow',
+    },
+  ],
+};
 
-  // Simulate fetching alerts - in a real app, this would come from a weather alerts API
-  const fetchAlerts = (cityName: string) => {
-    // For demonstration, we'll create mock alerts based on the city
-    // In a real implementation, this would call an alerts API
-    const mockAlerts: WeatherAlert[] = [];
-    
-    // Only show alerts for specific cities
-    if (cityName.toLowerCase().includes('florida') || 
-        cityName.toLowerCase().includes('texas') || 
-        cityName.toLowerCase().includes('colorado')) {
-      
-      const now = Date.now() / 1000; // Current time in Unix timestamp
-      const tomorrow = now + 24 * 60 * 60; // Tomorrow in Unix timestamp
-      
-      mockAlerts.push({
-        id: 1,
-        sender_name: 'National Weather Service',
-        event: 'Severe Thunderstorm Warning',
-        start: now,
-        end: tomorrow,
-        description: 'Severe thunderstorms producing large hail and damaging winds are expected. Take cover immediately.',
-        tags: ['Thunderstorm', 'Wind', 'Hail'],
-        area: cityName
-      });
-      
-      if (cityName.toLowerCase().includes('colorado')) {
-        mockAlerts.push({
-          id: 2,
-          sender_name: 'National Weather Service',
-          event: 'Flash Flood Watch',
-          start: now,
-          end: tomorrow + 12 * 60 * 60, // 36 hours
-          description: 'Heavy rainfall may cause flash flooding in low-lying areas. Avoid travel if possible.',
-          tags: ['Flood', 'Rain'],
-          area: cityName
-        });
-      }
-      
-      setNoAlerts(false);
-    } else {
-      setNoAlerts(true);
-    }
-    
-    setAlerts(mockAlerts);
-  };
+export default function WeatherAlertsPage() {
+  const [isDark, setIsDark] = useState(true);
+  const [cityInput, setCityInput] = useState('Florida');
+  const [activeCity, setActiveCity] = useState('Florida');
 
   useEffect(() => {
-    getWeatherByCity(city);
-    fetchAlerts(city);
-  }, [city, getWeatherByCity]);
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    getWeatherByCity(city);
-    fetchAlerts(city);
-  };
+  const activeAlerts = SAMPLE_ALERTS[activeCity.toLowerCase()] || [];
 
-  // Function to format date from Unix timestamp
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleString();
-  };
-
-  // Function to determine alert level for styling
-  const getAlertLevel = (event: string) => {
-    if (event.toLowerCase().includes('warning')) {
-      return 'warning';
-    } else if (event.toLowerCase().includes('watch')) {
-      return 'watch';
-    } else if (event.toLowerCase().includes('advisory')) {
-      return 'advisory';
-    }
-    return 'alert';
-  };
-
-  // Function to get styling classes based on alert level
-  const getAlertClasses = (event: string) => {
-    const level = getAlertLevel(event);
-    switch(level) {
-      case 'warning':
-        return 'bg-red-50 border-l-4 border-red-500';
-      case 'watch':
-        return 'bg-yellow-50 border-l-4 border-blue-500';
-      case 'advisory':
-        return 'bg-blue-50 border-l-4 border-blue-500';
-      default:
-        return 'bg-orange-50 border-l-4 border-orange-500';
-    }
+  const T = {
+    bgPage: isDark ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)' : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark ? 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(239,68,68,0.18), transparent)' : 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(239,68,68,0.08), transparent)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    textPrimary: isDark ? '#ffffff' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#64748b',
+    inputBg: isDark ? 'rgba(15, 23, 42, 0.9)' : '#ffffff',
+    inputBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(203, 213, 225, 0.9)',
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      <div className="flex justify-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 text-center border-2 border-blue-300 p-4 rounded-lg">Severe Weather Alerts</h1>
-      </div>
-      
-      <div className="mb-6">
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-grow">
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Enter a city name to check for alerts"
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+    <div style={{ background: T.bgPage, minHeight: '100vh' }} className="relative transition-colors duration-300">
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: T.ambientOrbs }} />
+
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-rose-500/10 text-rose-500 border-rose-500/20">
+            <AlertTriangle className="w-3.5 h-3.5" /> Emergency Weather Intelligence
           </div>
-          <button
-            type="submit"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-          >
-            Check Alerts
-          </button>
-        </form>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: T.textPrimary }}>
+            Severe Weather Alerts
+          </h1>
+          <p className="mt-2 text-sm sm:text-base max-w-lg mx-auto" style={{ color: T.textSecondary }}>
+            Official meteorological warnings, flood watches, storm trajectories, and public safety guidance.
+          </p>
         </div>
-      )}
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-          <strong className="font-bold">Error! </strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
-
-      {noAlerts && !loading && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-6 rounded-lg mb-6 text-center">
-          <div className="text-2xl mb-2">✓</div>
-          <h3 className="text-xl font-semibold">No Active Severe Weather Alerts</h3>
-          <p className="mt-2">No weather warnings or watches are currently in effect for {city}.</p>
-        </div>
-      )}
-
-      {alerts.length > 0 && !loading && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Active Weather Alerts for {city}</h2>
-          
-          {alerts.map((alert) => (
-            <div 
-              key={alert.id} 
-              className={`p-4 rounded-lg shadow ${getAlertClasses(alert.event)}`}
+        {/* Search & Quick Chips */}
+        <div className="max-w-xl mx-auto mb-8">
+          <div className="flex gap-2 mb-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search region (e.g. Florida, Texas, Colorado)..."
+                value={cityInput}
+                onChange={(e) => setCityInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') setActiveCity(cityInput);
+                }}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+                style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+              />
+            </div>
+            <button
+              onClick={() => setActiveCity(cityInput)}
+              className="px-6 py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-lg hover:scale-105 active:scale-95 transition-all"
             >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-bold text-lg text-gray-800">{alert.event}</h3>
-                  <p className="text-sm text-gray-600 mt-1">Issued by: {alert.sender_name}</p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {alert.tags.map((tag, idx) => (
-                      <span 
-                        key={idx} 
-                        className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                    {getAlertLevel(alert.event).toUpperCase()}
+              Inspect
+            </button>
+          </div>
+
+          <div className="flex items-center justify-center flex-wrap gap-2">
+            {['Florida', 'Texas', 'Colorado', 'London', 'Tokyo', 'Bengaluru'].map((c) => (
+              <button
+                key={c}
+                onClick={() => {
+                  setCityInput(c);
+                  setActiveCity(c);
+                }}
+                className="text-xs px-3 py-1 rounded-lg border font-medium transition-all"
+                style={{
+                  backgroundColor: activeCity.toLowerCase() === c.toLowerCase() ? (isDark ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.15)') : (isDark ? 'rgba(30, 41, 59, 0.6)' : '#ffffff'),
+                  borderColor: activeCity.toLowerCase() === c.toLowerCase() ? '#ef4444' : T.cardBorder,
+                  color: activeCity.toLowerCase() === c.toLowerCase() ? '#ef4444' : T.textPrimary,
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Alerts List or All-Clear Card */}
+        {activeAlerts.length > 0 ? (
+          <div className="space-y-4">
+            {activeAlerts.map((alert) => (
+              <div
+                key={alert.id}
+                className="rounded-3xl border p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden"
+                style={{
+                  backgroundColor: T.cardBg,
+                  borderColor: alert.severity === 'Warning' ? '#ef4444' : '#f59e0b',
+                  boxShadow: T.cardShadow,
+                }}
+              >
+                <div
+                  className="absolute top-0 left-0 right-0 h-1"
+                  style={{ backgroundColor: alert.severity === 'Warning' ? '#ef4444' : '#f59e0b' }}
+                />
+
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <span
+                    className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border"
+                    style={{
+                      backgroundColor: alert.severity === 'Warning' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                      borderColor: alert.severity === 'Warning' ? '#ef4444' : '#f59e0b',
+                      color: alert.severity === 'Warning' ? '#ef4444' : '#f59e0b',
+                    }}
+                  >
+                    {alert.severity} • {alert.event}
+                  </span>
+                  <span className="text-xs font-mono font-semibold" style={{ color: T.textSecondary }}>
+                    {alert.timeframe}
                   </span>
                 </div>
-              </div>
-              
-              <div className="mt-4">
-                <p className="text-gray-700">{alert.description}</p>
-              </div>
-              
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600">Valid from:</span>
-                  <div>{formatDate(alert.start)}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Valid until:</span>
-                  <div>{formatDate(alert.end)}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
-      <div className="mt-8 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-4 rounded-lg">
-        <h3 className="font-semibold">About Weather Alerts</h3>
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li><strong>Warning:</strong> Take action! A dangerous weather event is occurring or imminent.</li>
-          <li><strong>Watch:</strong> Be prepared! Conditions are favorable for dangerous weather to develop.</li>
-          <li><strong>Advisory:</strong> Be aware! Less severe but still significant weather conditions.</li>
-        </ul>
+                <h2 className="text-xl font-bold mb-1" style={{ color: T.textPrimary }}>
+                  {alert.area}
+                </h2>
+                <p className="text-xs font-semibold mb-4" style={{ color: T.textSecondary }}>
+                  Source: {alert.sender}
+                </p>
+
+                <p className="text-sm mb-4 leading-relaxed" style={{ color: T.textPrimary }}>
+                  {alert.description}
+                </p>
+
+                <div
+                  className="p-4 rounded-xl border flex items-start gap-3"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#f8fafc',
+                    borderColor: T.cardBorder,
+                  }}
+                >
+                  <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <strong className="block mb-0.5" style={{ color: T.textPrimary }}>Recommended Safety Action:</strong>
+                    <span style={{ color: T.textSecondary }}>{alert.instructions}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="rounded-3xl border p-12 text-center backdrop-blur-xl"
+            style={{
+              backgroundColor: T.cardBg,
+              borderColor: T.cardBorder,
+              boxShadow: T.cardShadow,
+            }}
+          >
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-bold mb-1" style={{ color: T.textPrimary }}>
+              No Active Severe Alerts
+            </h2>
+            <p className="text-sm max-w-md mx-auto" style={{ color: T.textSecondary }}>
+              There are currently no active warnings, watches, or advisories reported for <strong>{activeCity}</strong>. Weather conditions are within normal safety parameters.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

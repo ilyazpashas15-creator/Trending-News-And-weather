@@ -108,12 +108,16 @@ export const holidays2026: Holiday[] = [
 ];
 
 // Helper function to get holidays for a specific date
-export function getHolidaysForDate(date: Date): Holiday[] {
-  // Format date as YYYY-MM-DD in local timezone to avoid timezone issues
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const dateStr = `${year}-${month}-${day}`;
+export function getHolidaysForDate(date: Date | string): Holiday[] {
+  let dateStr = '';
+  if (typeof date === 'string') {
+    dateStr = date.slice(0, 10);
+  } else {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    dateStr = `${year}-${month}-${day}`;
+  }
   return holidays2026.filter(holiday => holiday.date === dateStr);
 }
 

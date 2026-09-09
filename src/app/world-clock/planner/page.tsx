@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TimelineGrid from '../../../components/world-clock/TimelineGrid';
 import ParticipantForm from '../../../components/world-clock/ParticipantForm';
@@ -8,10 +8,8 @@ import MeetingSuggestions from '../../../components/world-clock/MeetingSuggestio
 import {
   formatTimeForTimezone,
   formatDateForTimezone,
-  generateEventUrl,
   getTimezoneAbbreviation,
 } from '../../../services/timezoneService';
-import { POPULAR_CITIES } from '../../../utils/cityDatabase';
 
 interface Participant {
   id: string;
@@ -30,68 +28,84 @@ interface MeetingDetails {
 
 function PlannerContent() {
   const searchParams = useSearchParams();
-  
-  // Initialize state
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setIsDark(document.documentElement.classList.contains('dark'));
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   const [participants, setParticipants] = useState<Participant[]>([
     {
       id: '1',
-      name: 'My Location',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      name: 'My Location (Host)',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       cityId: 'local',
       workStart: 9,
       workEnd: 17,
     },
+    {
+      id: '2',
+      name: 'London Team',
+      timezone: 'Europe/London',
+      cityId: 'london',
+      workStart: 9,
+      workEnd: 17,
+    },
+    {
+      id: '3',
+      name: 'Tokyo HQ',
+      timezone: 'Asia/Tokyo',
+      cityId: 'tokyo',
+      workStart: 9,
+      workEnd: 18,
+    }
   ]);
-  
+
   const [meetingDetails, setMeetingDetails] = useState<MeetingDetails>({
     title: '',
     duration: 60,
     selectedTime: null,
   });
-  
+
   const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<string | null>(null);
   const [shareableLink, setShareableLink] = useState('');
   const [showLinkCopied, setShowLinkCopied] = useState(false);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
-  // Load from URL params if present
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const participantsParam = searchParams.get('participants');
     const titleParam = searchParams.get('title');
     const durationParam = searchParams.get('duration');
-    
+
     if (participantsParam) {
       try {
         const parsed = JSON.parse(decodeURIComponent(participantsParam));
         setParticipants(parsed);
       } catch (e) {
-        console.error('Failed to parse participants from URL:', e);
+        console.error('Failed to parse participants:', e);
       }
     }
-    
-    if (titleParam) {
-      setMeetingDetails(prev => ({ ...prev, title: titleParam }));
-    }
-    
-    if (durationParam) {
-      setMeetingDetails(prev => ({ ...prev, duration: parseInt(durationParam, 10) }));
-    }
+    if (titleParam) setMeetingDetails(prev => ({ ...prev, title: titleParam }));
+    if (durationParam) setMeetingDetails(prev => ({ ...prev, duration: parseInt(durationParam, 10) }));
   }, [searchParams]);
 
-  const addParticipant = useCallback((participantData: Omit<Participant, 'id'>) => {
-    const newParticipant: Participant = {
-      ...participantData,
-      id: Date.now().toString(),
-    };
+  const addParticipant = useCallback((data: Omit<Participant, 'id'>) => {
+    const newParticipant: Participant = { ...data, id: Date.now().toString() };
     setParticipants(prev => [...prev, newParticipant]);
     setShowParticipantForm(false);
-  }, []);
-
-  const updateParticipant = useCallback((id: string, updates: Partial<Participant>) => {
-    setParticipants(prev =>
-      prev.map(p => (p.id === id ? { ...p, ...updates } : p))
-    );
-    setEditingParticipant(null);
   }, []);
 
   const removeParticipant = useCallback((id: string) => {
@@ -111,177 +125,176 @@ function PlannerContent() {
     params.set('participants', encodeURIComponent(JSON.stringify(participants)));
     if (meetingDetails.title) params.set('title', meetingDetails.title);
     params.set('duration', meetingDetails.duration.toString());
-    
+
     const url = `${window.location.origin}/world-clock/planner?${params.toString()}`;
     setShareableLink(url);
-    
+
     navigator.clipboard.writeText(url).then(() => {
       setShowLinkCopied(true);
       setTimeout(() => setShowLinkCopied(false), 3000);
     });
   }, [participants, meetingDetails]);
 
-  const getCurrentTimeDisplay = () => {
-    return participants.map((participant) => {
-      const now = new Date();
-      return {
-        name: participant.name,
-        timezone: participant.timezone,
-        time: formatTimeForTimezone(participant.timezone, now),
-        date: formatDateForTimezone(participant.timezone, now),
-        abbreviation: getTimezoneAbbreviation(participant.timezone, now),
-      };
-    });
+  const T = {
+    bgPage: isDark
+      ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)'
+      : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark
+      ? 'radial-gradient(circle 800px at 20% 0%, rgba(99,102,241,0.08), transparent 70%), radial-gradient(circle 600px at 80% 20%, rgba(14,165,233,0.06), transparent 70%)'
+      : 'radial-gradient(circle 800px at 20% 0%, rgba(99,102,241,0.04), transparent 70%), radial-gradient(circle 600px at 80% 20%, rgba(14,165,233,0.03), transparent 70%)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.85)' : '#ffffff',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    subheading: isDark ? '#94a3b8' : '#64748b',
+    footerText: isDark ? '#64748b' : '#94a3b8',
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen overflow-x-hidden transition-colors duration-200" style={{ background: T.bgPage }}>
+      <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-0" style={{ background: T.ambientOrbs }} />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-7 pb-16">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
+        <header className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 shadow-xs bg-purple-500/10 border border-purple-500/25">
+            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" aria-hidden="true" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+              International Coordination · Overlap Finder
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">
             Meeting Planner
           </h1>
-          <p className="text-slate-400 text-lg">
-            Find the perfect time for your international meetings across multiple time zones
+          <p className="text-xs sm:text-sm max-w-md mx-auto" style={{ color: T.subheading }}>
+            Coordinate meetings seamlessly across timezones and discover perfect working hour overlaps.
           </p>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Participants & Meeting Details */}
-          <div className="space-y-6">
-            {/* Meeting Details Form */}
-            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-600/30">
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Meeting Details
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          {/* Left Column (4 cols): Details & Participants */}
+          <div className="lg:col-span-4 space-y-4">
+            {/* Meeting Details Card */}
+            <div
+              className="rounded-2xl p-4 sm:p-5 backdrop-blur-xl"
+              style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+            >
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <span className="text-base">📋</span>
+                <span>Meeting Details</span>
               </h2>
-              
-              <div className="space-y-4">
+
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
                     Meeting Title
                   </label>
                   <input
                     type="text"
                     value={meetingDetails.title}
                     onChange={(e) => setMeetingDetails(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Weekly Team Sync"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                    placeholder="e.g., Global Sprint Planning"
+                    className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Duration: {meetingDetails.duration} minutes
-                  </label>
+                  <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                    <span>Duration</span>
+                    <span className="text-purple-600 dark:text-purple-400">{meetingDetails.duration} min</span>
+                  </div>
                   <input
                     type="range"
                     min="15"
-                    max="240"
+                    max="180"
                     step="15"
                     value={meetingDetails.duration}
                     onChange={(e) => handleDurationChange(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-500"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600"
                   />
-                  <div className="flex justify-between text-xs text-slate-400 mt-1">
-                    <span>15 min</span>
-                    <span>4 hours</span>
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                    <span>15m</span>
+                    <span>1 hr</span>
+                    <span>2 hrs</span>
+                    <span>3 hrs</span>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={generateShareLink}
-                  className="w-full py-3 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                   </svg>
-                  Generate Shareable Link
+                  <span>Shareable Link</span>
                 </button>
-                
+
                 {showLinkCopied && (
-                  <div className="flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-lg">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Link copied to clipboard!
+                  <div className="text-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 py-1.5 rounded-lg">
+                    ✓ Link copied to clipboard!
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Participants List */}
-            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-600/30">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <svg className="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Participants ({participants.length})
+            {/* Participants Card */}
+            <div
+              className="rounded-2xl p-4 sm:p-5 backdrop-blur-xl"
+              style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <span className="text-base">👥</span>
+                  <span>Participants ({participants.length})</span>
                 </h2>
                 <button
+                  type="button"
                   onClick={() => setShowParticipantForm(true)}
-                  className="p-2 bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 rounded-lg transition-all duration-200"
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 hover:bg-purple-100 transition-all cursor-pointer"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+                  + Add
                 </button>
               </div>
 
-              {/* Participant Cards */}
-              <div className="space-y-3">
-                {participants.map((participant) => (
+              <div className="space-y-2">
+                {participants.map((p) => (
                   <div
-                    key={participant.id}
-                    className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50"
+                    key={p.id}
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 flex items-start justify-between gap-2"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-medium text-white">{participant.name}</h3>
-                        <p className="text-sm text-slate-400">
-                          {participant.timezone.split('/').pop()?.replace(/_/g, ' ')}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Working hours: {participant.workStart}:00 - {participant.workEnd}:00
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setEditingParticipant(participant.id)}
-                          className="p-1.5 text-slate-400 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-all"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => removeParticipant(participant.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.name}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {p.timezone.split('/').pop()?.replace(/_/g, ' ')}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Hours: {p.workStart}:00 – {p.workEnd}:00
+                      </p>
                     </div>
+
+                    {participants.length > 1 && (
+                      <button
+                        onClick={() => removeParticipant(p.id)}
+                        className="p-1 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                        title="Remove participant"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {/* New Participant Form */}
               {showParticipantForm && (
-                <div className="mt-4">
-                  <ParticipantForm
-                    onSave={addParticipant}
-                    isNew={true}
-                  />
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <ParticipantForm onSave={addParticipant} isNew={true} />
                   <button
+                    type="button"
                     onClick={() => setShowParticipantForm(false)}
-                    className="mt-3 w-full py-2 text-slate-400 hover:text-white text-sm transition-colors"
+                    className="mt-2 w-full py-1 text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -290,41 +303,76 @@ function PlannerContent() {
             </div>
           </div>
 
-          {/* Middle Column - Timeline Grid */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Current Time Display */}
-            <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-600/30">
-              <h2 className="text-lg font-semibold text-white mb-4">Current Time</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {getCurrentTimeDisplay().map((display, index) => (
-                  <div
-                    key={index}
-                    className="bg-slate-900/50 rounded-xl p-3 border border-slate-700/50"
-                  >
-                    <p className="text-xs text-slate-400 truncate">{display.name}</p>
-                    <p className="text-lg font-bold text-white">{display.time}</p>
-                    <p className="text-xs text-teal-400">{display.abbreviation}</p>
-                  </div>
-                ))}
+          {/* Right Column (8 cols): Clocks, Timeline & Suggestions */}
+          <div className="lg:col-span-8 space-y-4">
+            {/* Live Participant Clocks Strip */}
+            <div
+              className="rounded-2xl p-4 backdrop-blur-xl"
+              style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+            >
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
+                Current Local Times
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {participants.map((p) => {
+                  const nowStr = formatTimeForTimezone(p.timezone, currentTime);
+                  const abbr = getTimezoneAbbreviation(p.timezone, currentTime);
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5"
+                    >
+                      <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate">{p.name}</p>
+                      <p suppressHydrationWarning className="text-lg font-bold font-mono text-slate-900 dark:text-white my-0.5">
+                        {mounted ? nowStr : '--:--:--'}
+                      </p>
+                      <p className="text-[10px] font-semibold text-purple-600 dark:text-purple-400">{abbr}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Timeline Grid */}
-            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-600/30">
-              <h2 className="text-xl font-semibold text-white mb-4">24-Hour Timeline</h2>
-              <p className="text-sm text-slate-400 mb-4">
-                Click on a time slot to select it. Green = all participants available, Yellow = some available, Red = none available.
-              </p>
-              <TimelineGrid
-                participants={participants}
-                selectedTime={meetingDetails.selectedTime}
-                onTimeSelect={handleTimeSelect}
-                durationMinutes={meetingDetails.duration}
-              />
+            <div
+              className="rounded-2xl p-4 sm:p-5 backdrop-blur-xl"
+              style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  24-Hour International Timeline
+                </h2>
+                <div className="flex items-center gap-3 text-[10px]">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>All Available</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span>Partial Overlap</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-slate-400" />
+                    <span>Off Hours</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <TimelineGrid
+                  participants={participants}
+                  selectedTime={meetingDetails.selectedTime}
+                  onTimeSelect={handleTimeSelect}
+                  durationMinutes={meetingDetails.duration}
+                />
+              </div>
             </div>
 
-            {/* Meeting Suggestions */}
-            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-600/30">
+            {/* Smart Meeting Suggestions */}
+            <div
+              className="rounded-2xl p-4 sm:p-5 backdrop-blur-xl"
+              style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, boxShadow: T.cardShadow }}
+            >
               <MeetingSuggestions
                 participants={participants}
                 onSelectTime={handleTimeSelect}
@@ -335,6 +383,12 @@ function PlannerContent() {
             </div>
           </div>
         </div>
+
+        <footer className="text-center text-xs mt-10" style={{ color: T.footerText }}>
+          <span>Coordinated Universal Time (UTC) calculations</span>
+          <span className="mx-2">·</span>
+          <span>Instant shareable links preserve meeting configurations</span>
+        </footer>
       </div>
     </div>
   );
@@ -342,13 +396,14 @@ function PlannerContent() {
 
 export default function MeetingPlannerPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading meeting planner...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+          <div className="text-xs font-semibold text-slate-500">Loading meeting planner...</div>
+        </div>
+      }
+    >
       <PlannerContent />
     </Suspense>
   );
 }
-

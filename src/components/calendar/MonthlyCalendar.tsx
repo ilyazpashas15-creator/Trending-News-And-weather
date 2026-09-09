@@ -1,398 +1,330 @@
 'use client';
 
-import { useState } from 'react';
-import { getHolidaysForDate, holidayColors, holidayIcons, type Holiday } from '@/data/holidaysData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles, Filter, Search, Tag } from 'lucide-react';
+import { getHolidaysForDate, holidays2026, type Holiday } from '@/data/holidaysData';
 
 interface DayInfo {
   day: number;
   isCurrentMonth: boolean;
   isToday: boolean;
+  dateStr: string;
   holidays: Holiday[];
 }
 
 export default function MonthlyCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [isDark, setIsDark] = useState(true);
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState<DayInfo | null>(null);
+  const [searchFilter, setSearchFilter] = useState('');
 
-  // Get current month and year
+  useEffect(() => {
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  // Month names
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-
-  // Day names
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Get first day of the month (0 = Sunday, 1 = Monday, etc.)
   const firstDayOfMonth = new Date(year, month, 1).getDay();
-
-  // Get number of days in the month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  // Get days in previous month
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-  // Navigate to previous month
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-  };
+  const goToPrev = () => setCurrentDate(new Date(year, month - 1, 1));
+  const goToNext = () => setCurrentDate(new Date(year, month + 1, 1));
+  const goToToday = () => setCurrentDate(new Date());
 
-  // Navigate to next month
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-  };
+  // Generate calendar grid cells
+  const calendarDays = useMemo(() => {
+    const days: DayInfo[] = [];
+    const today = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
 
-  // Go to today
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  // Helper function to get the nth occurrence of a day in a month
-  const getNthDayOfMonth = (year: number, month: number, dayOfWeek: number, n: number): number => {
-    let count = 0;
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      if (date.getDay() === dayOfWeek) {
-        count++;
-        if (count === n) {
-          return day;
-        }
-      }
+    // Previous month padding
+    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      const d = daysInPrevMonth - i;
+      const prevMonth = month === 0 ? 11 : month - 1;
+      const prevYear = month === 0 ? year - 1 : year;
+      const dateStr = `${prevYear}-${pad(prevMonth + 1)}-${pad(d)}`;
+      days.push({
+        day: d,
+        isCurrentMonth: false,
+        isToday: false,
+        dateStr,
+        holidays: getHolidaysForDate(dateStr),
+      });
     }
-    return -1;
+
+    // Current month days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${pad(month + 1)}-${pad(d)}`;
+      const isToday =
+        today.getDate() === d &&
+        today.getMonth() === month &&
+        today.getFullYear() === year;
+
+      days.push({
+        day: d,
+        isCurrentMonth: true,
+        isToday,
+        dateStr,
+        holidays: getHolidaysForDate(dateStr),
+      });
+    }
+
+    // Next month padding (to fill 35 or 42 grid cells)
+    const remaining = 35 - days.length >= 0 ? 35 - days.length : 42 - days.length;
+    for (let d = 1; d <= remaining; d++) {
+      const nextMonth = month === 11 ? 0 : month + 1;
+      const nextYear = month === 11 ? year + 1 : year;
+      const dateStr = `${nextYear}-${pad(nextMonth + 1)}-${pad(d)}`;
+      days.push({
+        day: d,
+        isCurrentMonth: false,
+        isToday: false,
+        dateStr,
+        holidays: getHolidaysForDate(dateStr),
+      });
+    }
+
+    return days;
+  }, [year, month, firstDayOfMonth, daysInMonth, daysInPrevMonth]);
+
+  // All holidays in the current month
+  const monthHolidays = useMemo(() => {
+    return calendarDays
+      .filter((d) => d.isCurrentMonth && d.holidays.length > 0)
+      .flatMap((d) => d.holidays.map((h) => ({ ...h, dayNumber: d.day })))
+      .filter((h) => !searchFilter || h.name.toLowerCase().includes(searchFilter.toLowerCase()));
+  }, [calendarDays, searchFilter]);
+
+  const T = {
+    bgPage: isDark ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)' : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark ? 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(59,130,246,0.18), transparent)' : 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(59,130,246,0.08), transparent)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    textPrimary: isDark ? '#ffffff' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#64748b',
+    cellBg: isDark ? 'rgba(30, 41, 59, 0.4)' : '#ffffff',
+    cellOtherBg: isDark ? 'rgba(15, 23, 42, 0.3)' : '#f8fafc',
+    cellBorder: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.8)',
+    inputBg: isDark ? 'rgba(15, 23, 42, 0.9)' : '#ffffff',
+    inputBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(203, 213, 225, 0.9)',
   };
-
-  // Get 2nd and 4th Saturday of the month (6 = Saturday)
-  const secondSaturday = getNthDayOfMonth(year, month, 6, 2);
-  const fourthSaturday = getNthDayOfMonth(year, month, 6, 4);
-
-  // Check if a day is 2nd or 4th Saturday
-  const isSpecialSaturday = (day: number, isCurrentMonth: boolean): string => {
-    if (!isCurrentMonth) return '';
-    if (day === secondSaturday) return '2nd Sat';
-    if (day === fourthSaturday) return '4th Sat';
-    return '';
-  };
-
-  // Generate calendar days array
-  const calendarDays: DayInfo[] = [];
-
-  // Add previous month's days
-  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-    const prevMonthDay = daysInPrevMonth - i;
-    const date = new Date(year, month - 1, prevMonthDay);
-    calendarDays.push({
-      day: prevMonthDay,
-      isCurrentMonth: false,
-      isToday: false,
-      holidays: getHolidaysForDate(date)
-    });
-  }
-
-  // Add current month's days
-  const today = new Date();
-  for (let day = 1; day <= daysInMonth; day++) {
-    const isToday =
-      day === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear();
-
-    const date = new Date(year, month, day);
-    calendarDays.push({
-      day: day,
-      isCurrentMonth: true,
-      isToday: isToday,
-      holidays: getHolidaysForDate(date)
-    });
-  }
-
-  // Add next month's days to complete the grid
-  const remainingDays = 42 - calendarDays.length; // 6 rows × 7 days = 42
-  for (let day = 1; day <= remainingDays; day++) {
-    const date = new Date(year, month + 1, day);
-    calendarDays.push({
-      day: day,
-      isCurrentMonth: false,
-      isToday: false,
-      holidays: getHolidaysForDate(date)
-    });
-  }
-
-  // Get all holidays for the current month
-  const monthHolidays = calendarDays
-    .filter(day => day.isCurrentMonth && day.holidays.length > 0)
-    .map(day => ({
-      day: day.day,
-      holidays: day.holidays
-    }))
-    .sort((a, b) => a.day - b.day);
 
   return (
-    <div className="max-w-[1800px] mx-auto p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex justify-center mb-6">
-          <h1 className="text-4xl font-bold text-white border-2 border-blue-300 p-4 rounded-lg">
+    <div style={{ background: T.bgPage, minHeight: '100vh' }} className="relative transition-colors duration-300">
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: T.ambientOrbs }} />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-blue-500/10 text-blue-500 border-blue-500/20">
+            <CalendarIcon className="w-3.5 h-3.5" /> Interactive Monthly View
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: T.textPrimary }}>
             Monthly Calendar
           </h1>
+          <p className="mt-2 text-sm sm:text-base max-w-lg mx-auto" style={{ color: T.textSecondary }}>
+            Navigate months, inspect global holidays, and track festivals in a modern grid.
+          </p>
         </div>
-        <p className="text-gray-300 text-center text-lg">
-          View the calendar with holidays and festivals for the current month
-        </p>
-      </div>
 
-      {/* Calendar Controls */}
-      <div className="bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-4 mb-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
-          <div className="flex items-center gap-2">
+        {/* Toolbar Controls */}
+        <div
+          className="rounded-2xl border p-4 mb-6 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4"
+          style={{
+            backgroundColor: T.cardBg,
+            borderColor: T.cardBorder,
+            boxShadow: T.cardShadow,
+          }}
+        >
+          <div className="flex items-center gap-3">
             <button
-              onClick={goToPreviousMonth}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition border-2 border-blue-400"
+              onClick={goToPrev}
               aria-label="Previous Month"
+              className="p-2.5 rounded-xl border hover:scale-105 active:scale-95 transition-all"
+              style={{ backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : '#ffffff', borderColor: T.cardBorder, color: T.textPrimary }}
             >
-              ← Previous
+              <ChevronLeft className="w-4 h-4" />
             </button>
-
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-white">
-                {monthNames[month]} {year}
-              </h2>
-            </div>
-
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight min-w-[200px] text-center" style={{ color: T.textPrimary }}>
+              {monthNames[month]} {year}
+            </h2>
             <button
-              onClick={goToNextMonth}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition border-2 border-blue-400"
+              onClick={goToNext}
               aria-label="Next Month"
+              className="p-2.5 rounded-xl border hover:scale-105 active:scale-95 transition-all"
+              style={{ backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : '#ffffff', borderColor: T.cardBorder, color: T.textPrimary }}
             >
-              Next →
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <button
-            onClick={goToToday}
-            className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition font-semibold border-2 border-blue-400"
-          >
-            Today
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToToday}
+              className="px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105"
+              style={{
+                backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
+                borderColor: '#3b82f6',
+                color: '#3b82f6',
+              }}
+            >
+              Today
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Main Content: Calendar + Holidays List */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Grid - Takes 2 columns */}
-        <div className="lg:col-span-2">
-          <div className="bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-4">
-            {/* Day names header */}
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {dayNames.map((day) => (
+        {/* 2-Column Layout: Grid + Holidays Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Calendar Grid (3 Cols) */}
+          <div
+            className="lg:col-span-3 rounded-3xl border p-4 sm:p-6 backdrop-blur-xl relative overflow-hidden"
+            style={{
+              backgroundColor: T.cardBg,
+              borderColor: T.cardBorder,
+              boxShadow: T.cardShadow,
+            }}
+          >
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 gap-1.5 mb-2">
+              {dayNames.map((d, idx) => (
                 <div
-                  key={day}
-                  className="text-center font-bold text-white py-2 bg-[#0d1929] rounded border border-blue-400"
+                  key={d}
+                  className="text-center font-bold text-xs py-2 rounded-lg"
+                  style={{
+                    color: idx === 0 ? '#ef4444' : idx === 6 ? '#3b82f6' : T.textSecondary,
+                  }}
                 >
-                  {day}
+                  {d}
                 </div>
               ))}
             </div>
 
-            {/* Calendar days grid */}
-            <div className="grid grid-cols-7 gap-2">
-              {calendarDays.map((dayObj, index) => {
-                const hasHoliday = dayObj.holidays.length > 0;
-                const specialSat = isSpecialSaturday(dayObj.day, dayObj.isCurrentMonth);
-                
+            {/* Grid Days */}
+            <div className="grid grid-cols-7 gap-1.5">
+              {calendarDays.map((d, idx) => {
+                const isSelected = selectedDay?.dateStr === d.dateStr;
+                const hasHoliday = d.holidays.length > 0;
+
                 return (
                   <div
-                    key={index}
-                    className={`
-                      min-h-[90px] flex flex-col p-2 rounded border-2 cursor-pointer
-                      transition-all hover:shadow-lg relative
-                      ${dayObj.isCurrentMonth
-                        ? 'border-blue-400 bg-[#0d1929] text-white font-semibold'
-                        : 'border-gray-600 bg-[#0a1420] text-gray-500'
-                      }
-                      ${dayObj.isToday
-                        ? 'bg-blue-500 text-white border-blue-400 font-bold hover:bg-blue-600 ring-2 ring-blue-400'
-                        : hasHoliday || specialSat
-                        ? 'hover:bg-[#2a3f5f]'
-                        : 'hover:bg-[#1a2942]'
-                      }
-                      ${specialSat ? 'bg-purple-900 border-purple-400' : ''}
-                    `}
-                    title={dayObj.holidays.map(h => `${h.name} (${h.country})`).join('\n')}
+                    key={idx}
+                    onClick={() => setSelectedDay(d)}
+                    className="min-h-[85px] sm:min-h-[100px] p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition-all duration-150 hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: d.isToday
+                        ? isDark ? 'rgba(59, 130, 246, 0.25)' : 'rgba(239, 246, 255, 0.95)'
+                        : d.isCurrentMonth ? T.cellBg : T.cellOtherBg,
+                      borderColor: d.isToday ? '#3b82f6' : isSelected ? '#8b5cf6' : T.cellBorder,
+                      opacity: d.isCurrentMonth ? 1 : 0.4,
+                      boxShadow: d.isToday ? '0 0 15px rgba(59, 130, 246, 0.25)' : 'none',
+                    }}
                   >
-                    <div className="text-base font-bold mb-1">{dayObj.day}</div>
-                    
-                    {/* Special Saturday Badge */}
-                    {specialSat && (
-                      <div className="text-[11px] px-1 py-0.5 rounded mb-1 bg-purple-200 text-purple-900 border border-purple-400 font-semibold">
-                        🏢 {specialSat}
-                      </div>
-                    )}
-                    
-                    {hasHoliday && (
-                      <div className="flex-1 overflow-hidden">
-                        {dayObj.holidays.slice(0, 2).map((holiday, idx) => (
-                          <div
-                            key={idx}
-                            className={`text-[11px] px-1 py-0.5 rounded mb-0.5 border ${
-                              dayObj.isToday 
-                                ? 'bg-white text-gray-800 border-gray-300' 
-                                : holidayColors[holiday.type]
-                            }`}
-                          >
-                            <span className="mr-0.5">{holidayIcons[holiday.type]}</span>
-                            <span className="truncate block leading-tight">{holiday.name}</span>
-                          </div>
-                        ))}
-                        {dayObj.holidays.length > 2 && (
-                          <div className="text-[10px] text-gray-400">
-                            +{dayObj.holidays.length - 2}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${
+                          d.isToday ? 'bg-blue-600 text-white' : ''
+                        }`}
+                        style={{ color: d.isToday ? '#ffffff' : T.textPrimary }}
+                      >
+                        {d.day}
+                      </span>
+                      {hasHoliday && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      )}
+                    </div>
+
+                    {/* Holiday Mini Badges */}
+                    <div className="space-y-1 overflow-hidden mt-1">
+                      {d.holidays.slice(0, 2).map((h, hIdx) => (
+                        <div
+                          key={hIdx}
+                          className="text-[10px] font-semibold truncate px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500"
+                          title={h.name}
+                        >
+                          {h.name}
+                        </div>
+                      ))}
+                      {d.holidays.length > 2 && (
+                        <div className="text-[9px] font-bold text-slate-400 pl-1">
+                          +{d.holidays.length - 2} more
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        </div>
 
-        {/* Holidays List Sidebar - Takes 1 column */}
-        <div className="lg:col-span-1">
-          <div className="bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-2.5 sticky top-6">
-            <h3 className="text-base font-bold text-white mb-2 text-center border-b-2 border-blue-400 pb-1.5">
-              📅 This Month's Events
-            </h3>
-            
-            {/* Special Saturdays */}
-            <div className="mb-2.5">
-              <h4 className="text-[11px] font-bold text-purple-300 mb-1.5 flex items-center gap-1">
-                <span>🏢</span> Bank Holidays
-              </h4>
-              <div className="space-y-1">
-                {secondSaturday > 0 && (
-                  <div className="bg-purple-900 border border-purple-400 rounded p-1.5 text-[11px]">
-                    <div className="font-semibold text-white">
-                      {monthNames[month]} {secondSaturday}
-                    </div>
-                    <div className="text-purple-200 text-[9px]">2nd Saturday</div>
-                  </div>
-                )}
-                {fourthSaturday > 0 && (
-                  <div className="bg-purple-900 border border-purple-400 rounded p-1.5 text-[11px]">
-                    <div className="font-semibold text-white">
-                      {monthNames[month]} {fourthSaturday}
-                    </div>
-                    <div className="text-purple-200 text-[9px]">4th Saturday</div>
-                  </div>
-                )}
-              </div>
+          {/* Month Holidays & Events Panel (1 Col) */}
+          <div
+            className="rounded-3xl border p-5 backdrop-blur-xl flex flex-col"
+            style={{
+              backgroundColor: T.cardBg,
+              borderColor: T.cardBorder,
+              boxShadow: T.cardShadow,
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: T.textPrimary }}>
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Month Holidays
+              </h3>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
+                {monthHolidays.length}
+              </span>
             </div>
 
-            {/* Holidays List */}
-            <div className="max-h-[450px] overflow-y-auto space-y-1.5">
-              {monthHolidays.length > 0 ? (
-                monthHolidays.map((item, index) => (
-                  <div key={index} className="space-y-1">
-                    {item.holidays.map((holiday, idx) => (
-                      <div
-                        key={idx}
-                        className={`rounded p-1.5 border-2 ${holidayColors[holiday.type]} transition hover:scale-105`}
-                      >
-                        <div className="flex items-start gap-1">
-                          <span className="text-base">{holidayIcons[holiday.type]}</span>
-                          <div className="flex-1">
-                            <div className="font-bold text-[10px]">
-                              {monthNames[month]} {item.day}
-                            </div>
-                            <div className="font-semibold text-xs leading-tight">{holiday.name}</div>
-                            <div className="text-[9px] opacity-80 mt-0.5">
-                              {holiday.country}
-                            </div>
-                            {holiday.description && (
-                              <div className="text-[9px] opacity-70 mt-0.5 line-clamp-1">
-                                {holiday.description}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+            {/* Search Input */}
+            <div className="relative mb-3">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Filter holidays..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg border text-xs focus:outline-none"
+                style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+              />
+            </div>
+
+            {/* Scrollable Holiday List */}
+            <div className="divide-y overflow-y-auto max-h-[500px] pr-1 space-y-1" style={{ borderColor: T.cardBorder }}>
+              {monthHolidays.length === 0 ? (
+                <div className="py-8 text-center text-xs" style={{ color: T.textSecondary }}>
+                  No holidays recorded for this month.
+                </div>
+              ) : (
+                monthHolidays.map((h, idx) => (
+                  <div key={idx} className="pt-2.5 pb-2 transition-colors hover:bg-slate-500/5 rounded-lg px-2">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="font-bold text-xs truncate" style={{ color: T.textPrimary }}>
+                        {h.name}
+                      </span>
+                      <span className="text-[10px] font-mono font-semibold text-blue-500 shrink-0">
+                        Day {h.dayNumber}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px]" style={{ color: T.textSecondary }}>
+                      <span>{h.country}</span>
+                      <span>•</span>
+                      <span className="capitalize">{h.type}</span>
+                    </div>
                   </div>
                 ))
-              ) : (
-                <div className="text-center text-gray-400 py-4">
-                  <div className="text-2xl mb-1">📭</div>
-                  <p className="text-xs">No holidays this month</p>
-                </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="mt-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-300">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-500 rounded border-2 border-blue-400 ring-2 ring-blue-400"></div>
-            <span>Today</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-[#0d1929] rounded border-2 border-blue-400"></div>
-            <span>Current Month</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-purple-900 rounded border-2 border-purple-400"></div>
-            <span>2nd/4th Saturday</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-[#0a1420] rounded border-2 border-gray-600"></div>
-            <span>Other Month</span>
-          </div>
-        </div>
-        
-        <div className="bg-[#1a2942] border-2 border-blue-400 rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-bold mb-3 text-center text-white">Holiday Types</h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🎌</span>
-              <div>
-                <div className="font-semibold text-white">National</div>
-                <div className="text-xs text-gray-400">Public holidays</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🕉️</span>
-              <div>
-                <div className="font-semibold text-white">Religious</div>
-                <div className="text-xs text-gray-400">Faith celebrations</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🎉</span>
-              <div>
-                <div className="font-semibold text-white">Festival</div>
-                <div className="text-xs text-gray-400">Cultural events</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">📅</span>
-              <div>
-                <div className="font-semibold text-white">Observance</div>
-                <div className="text-xs text-gray-400">Special days</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🏢</span>
-              <div>
-                <div className="font-semibold text-white">Bank Holiday</div>
-                <div className="text-xs text-gray-400">2nd & 4th Sat</div>
-              </div>
             </div>
           </div>
         </div>

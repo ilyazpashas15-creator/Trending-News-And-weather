@@ -1,198 +1,264 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Clock, Plus, Trash2, Globe, Sparkles, SlidersHorizontal, Sun, Moon } from 'lucide-react';
+import { getAllTimeZones } from '@/utils/timezones';
 
-// Define time zones with their UTC offsets
-const timeZones = [
-  { id: 'UTC', name: 'Coordinated Universal Time', offset: 0 },
-  { id: 'EST', name: 'Eastern Standard Time', offset: -5 },
-  { id: 'PST', name: 'Pacific Standard Time', offset: -8 },
-  { id: 'GMT', name: 'Greenwich Mean Time', offset: 0 },
-  { id: 'CET', name: 'Central European Time', offset: 1 },
-  { id: 'JST', name: 'Japan Standard Time', offset: 9 },
-  { id: 'AEST', name: 'Australian Eastern Time', offset: 10 },
-  { id: 'BST', name: 'British Summer Time', offset: 1 },
-  { id: 'IST', name: 'Indian Standard Time', offset: 5.5 },
-  { id: 'CST', name: 'China Standard Time', offset: 8 },
+interface ClockLocation {
+  id: string;
+  name: string;
+  timezone: string;
+  flag: string;
+}
+
+const DEFAULT_LOCATIONS: ClockLocation[] = [
+  { id: '1', name: 'New York', timezone: 'America/New_York', flag: '🇺🇸' },
+  { id: '2', name: 'London', timezone: 'Europe/London', flag: '🇬🇧' },
+  { id: '3', name: 'Paris', timezone: 'Europe/Paris', flag: '🇫🇷' },
+  { id: '4', name: 'Tokyo', timezone: 'Asia/Tokyo', flag: '🇯PT' },
+  { id: '5', name: 'Sydney', timezone: 'Australia/Sydney', flag: '🇦🇺' },
+  { id: '6', name: 'Dubai', timezone: 'Asia/Dubai', flag: '🇦🇪' },
+  { id: '7', name: 'Singapore', timezone: 'Asia/Singapore', flag: '🇸🇬' },
+  { id: '8', name: 'New Delhi', timezone: 'Asia/Kolkata', flag: '🇮🇳' },
+  { id: '9', name: 'San Francisco', timezone: 'America/Los_Angeles', flag: '🇺🇸' },
+  { id: '10', name: 'UTC Coordinated', timezone: 'UTC', flag: '🌐' },
 ];
 
 export default function TimersClockPage() {
-  const [selectedTimeZones, setSelectedTimeZones] = useState<string[]>(['EST', 'PST', 'GMT']);
-  const [customTimeZones, setCustomTimeZones] = useState<{id: string, name: string, offset: number}[]>([]);
-  const [newTimeZoneName, setNewTimeZoneName] = useState('');
-  const [newTimeZoneOffset, setNewTimeZoneOffset] = useState(0);
+  const [isDark, setIsDark] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [is24Hour, setIs24Hour] = useState(false);
+  const [showSeconds, setShowSeconds] = useState(true);
+  const [locations, setLocations] = useState<ClockLocation[]>(DEFAULT_LOCATIONS);
+  
+  // Add custom timezone
+  const [selectedTz, setSelectedTz] = useState('Europe/Berlin');
+  const [customName, setCustomName] = useState('');
+  const allTimezones = useMemo(() => getAllTimeZones(), []);
 
-  // Calculate time for a given timezone offset
-  const getTimeForOffset = (offset: number) => {
-    const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
-    const newTime = new Date(utc + (3600000 * offset));
-    return newTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  };
+  useEffect(() => {
+    setMounted(true);
+    setCurrentTime(new Date());
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-  // Calculate date for a given timezone offset
-  const getDateForOffset = (offset: number) => {
-    const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
-    const newTime = new Date(utc + (3600000 * offset));
-    return newTime.toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-  };
+    try {
+      const saved = localStorage.getItem('myweatherapp_clock_locations');
+      if (saved) setLocations(JSON.parse(saved));
+    } catch {}
 
-  // Add a custom time zone
-  const addCustomTimeZone = () => {
-    if (!newTimeZoneName || newTimeZoneOffset === undefined) return;
-    
-    const newCustomZone = {
-      id: newTimeZoneName.toUpperCase().replace(/\s+/g, ''),
-      name: newTimeZoneName,
-      offset: newTimeZoneOffset
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => {
+      obs.disconnect();
+      clearInterval(timer);
     };
-    
-    setCustomTimeZones(prev => [...prev, newCustomZone]);
-    setNewTimeZoneName('');
-    setNewTimeZoneOffset(0);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      localStorage.setItem('myweatherapp_clock_locations', JSON.stringify(locations));
+    } catch {}
+  }, [locations, mounted]);
+
+  const handleAddLocation = () => {
+    const name = customName.trim() || selectedTz.split('/').pop()?.replace(/_/g, ' ') || 'Custom';
+    const newLoc: ClockLocation = {
+      id: Date.now().toString(),
+      name,
+      timezone: selectedTz,
+      flag: '📍',
+    };
+    setLocations((prev) => [...prev, newLoc]);
+    setCustomName('');
   };
 
-  // Remove a custom time zone
-  const removeCustomTimeZone = (id: string) => {
-    setCustomTimeZones(prev => prev.filter(zone => zone.id !== id));
-    setSelectedTimeZones(prev => prev.filter(zoneId => zoneId !== id));
+  const handleRemove = (id: string) => {
+    setLocations((prev) => prev.filter((l) => l.id !== id));
   };
 
-  // Toggle selection of a time zone
-  const toggleTimeZone = (id: string) => {
-    setSelectedTimeZones(prev => 
-      prev.includes(id) 
-        ? prev.filter(zoneId => zoneId !== id) 
-        : [...prev, id]
-    );
+  const formatLocationTime = (tz: string) => {
+    if (!currentTime) return { time: '--:--', date: '---', isDay: true, offsetStr: 'UTC' };
+    try {
+      const timeStr = currentTime.toLocaleTimeString('en-US', {
+        timeZone: tz,
+        hour12: !is24Hour,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: showSeconds ? '2-digit' : undefined,
+      });
+
+      const dateStr = currentTime.toLocaleDateString('en-US', {
+        timeZone: tz,
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      });
+
+      // Day / Night indicator
+      const hourInTz = parseInt(
+        currentTime.toLocaleTimeString('en-US', { timeZone: tz, hour12: false, hour: '2-digit' }),
+        10
+      );
+      const isDay = hourInTz >= 6 && hourInTz < 18;
+
+      // Offset string
+      const utcDate = new Date(currentTime.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const tzDate = new Date(currentTime.toLocaleString('en-US', { timeZone: tz }));
+      const diffHours = Math.round((tzDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60));
+      const offsetStr = `UTC${diffHours >= 0 ? '+' : ''}${diffHours}`;
+
+      return { time: timeStr, date: dateStr, isDay, offsetStr };
+    } catch {
+      return { time: '--:--', date: '---', isDay: true, offsetStr: 'UTC' };
+    }
   };
 
-  // Get all available time zones (predefined + custom)
-  const allTimeZones = [...timeZones, ...customTimeZones];
+  const T = {
+    bgPage: isDark ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)' : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark ? 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(14,165,233,0.18), transparent)' : 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(14,165,233,0.08), transparent)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    textPrimary: isDark ? '#ffffff' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#64748b',
+    inputBg: isDark ? 'rgba(15, 23, 42, 0.9)' : '#ffffff',
+    inputBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(203, 213, 225, 0.9)',
+  };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-center mb-6">
-        <h1 className="text-3xl font-bold text-white text-center border-2 border-blue-300 p-4 rounded-lg">World Clock Timer</h1>
-      </div>
-      <p className="mb-6 text-center text-gray-300 text-lg">View timers in different time zones around the world.</p>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Time Zone Selection Panel */}
-        <div className="lg:col-span-1 bg-[#1a2942] border-2 border-blue-400 rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Select Time Zones</h2>
-          
-          {/* Predefined Time Zones */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-white mb-3">Predefined Time Zones</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto bg-[#0d1929] border-2 border-blue-400 rounded-lg p-3">
-              {timeZones.map(tz => (
-                <div key={tz.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={tz.id}
-                    checked={selectedTimeZones.includes(tz.id)}
-                    onChange={() => toggleTimeZone(tz.id)}
-                    className="mr-2 w-4 h-4"
-                  />
-                  <label htmlFor={tz.id} className="flex-1 text-gray-300 text-sm">
-                    {tz.name} (UTC{tz.offset >= 0 ? '+' : ''}{tz.offset})
-                  </label>
-                </div>
-              ))}
-            </div>
+    <div style={{ background: T.bgPage, minHeight: '100vh' }} className="relative transition-colors duration-300">
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: T.ambientOrbs }} />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-sky-500/10 text-sky-500 border-sky-500/20">
+            <Globe className="w-3.5 h-3.5" /> Multi-Zone World Dashboard
           </div>
-          
-          {/* Custom Time Zones */}
-          {customTimeZones.length > 0 && (
-            <div className="mb-6">
-              <h3 className="font-semibold text-white mb-3">Custom Time Zones</h3>
-              <div className="space-y-2 max-h-40 overflow-y-auto bg-[#0d1929] border-2 border-blue-400 rounded-lg p-3">
-                {customTimeZones.map(tz => (
-                  <div key={tz.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={tz.id}
-                      checked={selectedTimeZones.includes(tz.id)}
-                      onChange={() => toggleTimeZone(tz.id)}
-                      className="mr-2 w-4 h-4"
-                    />
-                    <label htmlFor={tz.id} className="flex-1 flex justify-between text-gray-300 text-sm">
-                      <span>{tz.name}</span>
-                      <button 
-                        onClick={() => removeCustomTimeZone(tz.id)}
-                        className="text-red-400 hover:text-red-300 text-sm font-semibold"
-                      >
-                        Remove
-                      </button>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Add Custom Time Zone */}
-          <div className="border-t-2 border-blue-400 pt-4">
-            <h3 className="font-semibold text-white mb-3">Add Custom Time Zone</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-bold text-white mb-2">Name</label>
-                <input
-                  type="text"
-                  value={newTimeZoneName}
-                  onChange={(e) => setNewTimeZoneName(e.target.value)}
-                  placeholder="e.g., My Location"
-                  className="w-full px-3 py-2 border-2 border-blue-400 rounded-lg bg-[#0d1929] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-white mb-2">UTC Offset (hours)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={newTimeZoneOffset}
-                  onChange={(e) => setNewTimeZoneOffset(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border-2 border-blue-400 rounded-lg bg-[#0d1929] text-white focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                />
-              </div>
-              <button
-                onClick={addCustomTimeZone}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 rounded-lg font-semibold transition"
-              >
-                Add Time Zone
-              </button>
-            </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: T.textPrimary }}>
+            World Clock & Timers
+          </h1>
+          <p className="mt-2 text-sm sm:text-base max-w-xl mx-auto" style={{ color: T.textSecondary }}>
+            Synchronized live clocks with day/night status, UTC offsets, and custom time zones.
+          </p>
+        </div>
+
+        {/* Toolbar & Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          {/* Format switches */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIs24Hour(!is24Hour)}
+              className="text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all hover:scale-105"
+              style={{
+                backgroundColor: is24Hour ? (isDark ? 'rgba(14, 165, 233, 0.2)' : 'rgba(14, 165, 233, 0.15)') : (isDark ? 'rgba(30, 41, 59, 0.7)' : '#ffffff'),
+                borderColor: is24Hour ? '#0ea5e9' : T.cardBorder,
+                color: is24Hour ? '#0ea5e9' : T.textPrimary,
+              }}
+            >
+              {is24Hour ? '24-Hour Format' : '12-Hour (AM/PM)'}
+            </button>
+            <button
+              onClick={() => setShowSeconds(!showSeconds)}
+              className="text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all hover:scale-105"
+              style={{
+                backgroundColor: showSeconds ? (isDark ? 'rgba(14, 165, 233, 0.2)' : 'rgba(14, 165, 233, 0.15)') : (isDark ? 'rgba(30, 41, 59, 0.7)' : '#ffffff'),
+                borderColor: showSeconds ? '#0ea5e9' : T.cardBorder,
+                color: showSeconds ? '#0ea5e9' : T.textPrimary,
+              }}
+            >
+              {showSeconds ? 'Seconds ON' : 'Seconds OFF'}
+            </button>
+          </div>
+
+          {/* Add City quick inline */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={selectedTz}
+              onChange={(e) => setSelectedTz(e.target.value)}
+              className="text-xs px-3 py-1.5 rounded-lg border font-medium max-w-xs focus:outline-none"
+              style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+            >
+              {allTimezones.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleAddLocation}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-bold bg-sky-500 hover:bg-sky-600 text-white transition-all hover:scale-105"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Clock
+            </button>
           </div>
         </div>
-        
-        {/* World Clock Display */}
-        <div className="lg:col-span-2 bg-[#1a2942] border-2 border-blue-400 rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-white mb-4">World Clock</h2>
-          
-          {selectedTimeZones.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <p>Select time zones to display their current times</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedTimeZones.map(zoneId => {
-                const zone = allTimeZones.find(tz => tz.id === zoneId);
-                if (!zone) return null;
-                
-                return (
-                  <div key={zoneId} className="border-2 border-blue-400 rounded-lg p-4 bg-[#0d1929] hover:bg-[#2a3f5f] transition">
-                    <div className="text-lg font-semibold text-white">{zone.name}</div>
-                    <div className="text-3xl font-mono font-bold my-2 text-blue-400">
-                      {getTimeForOffset(zone.offset)}
-                    </div>
-                    <div className="text-gray-300">
-                      {getDateForOffset(zone.offset)} <span className="text-blue-400">(UTC{zone.offset >= 0 ? '+' : ''}{zone.offset})</span>
-                    </div>
+
+        {/* Clocks 5-Column Responsive Grid (lg:grid-cols-5 for Chrome & Edge consistency) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          {locations.map((loc) => {
+            const info = formatLocationTime(loc.timezone);
+
+            return (
+              <div
+                key={loc.id}
+                className="group relative rounded-2xl border p-4 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between"
+                style={{
+                  backgroundColor: T.cardBg,
+                  borderColor: T.cardBorder,
+                  boxShadow: T.cardShadow,
+                  minHeight: '130px',
+                }}
+              >
+                {/* Top color stripe */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-blue-600 rounded-t-2xl opacity-75 group-hover:opacity-100 transition-opacity" />
+
+                {/* Delete on hover */}
+                <button
+                  onClick={() => handleRemove(loc.id)}
+                  className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1 rounded-md text-rose-400 hover:bg-rose-500/10 transition-all"
+                  title="Remove clock"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1 pr-6">
+                    <span className="text-base">{loc.flag}</span>
+                    <h3 className="font-bold text-sm truncate" style={{ color: T.textPrimary }}>
+                      {loc.name}
+                    </h3>
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  <div className="flex items-center gap-2 text-[11px] mb-2 font-medium" style={{ color: T.textSecondary }}>
+                    <span>{info.offsetStr}</span>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1">
+                      {info.isDay ? <Sun className="w-3 h-3 text-amber-500" /> : <Moon className="w-3 h-3 text-indigo-400" />}
+                      {info.isDay ? 'Day' : 'Night'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <div
+                    className="font-mono font-black text-2xl tracking-tight"
+                    style={{ color: T.textPrimary }}
+                    suppressHydrationWarning
+                  >
+                    {info.time}
+                  </div>
+                  <div className="text-[11px] font-medium mt-0.5" style={{ color: T.textSecondary }} suppressHydrationWarning>
+                    {info.date}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

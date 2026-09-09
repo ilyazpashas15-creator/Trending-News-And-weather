@@ -2,203 +2,199 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWeather } from '@/hooks/useWeather';
-import { WeatherData, ForecastData } from '@/types/weather.types';
+import { Clock, Search, Droplets, Wind, Compass, Sparkles } from 'lucide-react';
 
-// Define a type for hourly forecast data
-interface HourlyForecastData {
-  dt: number; // Unix timestamp
-  temp: number; // Temperature
-  feels_like: number; // Feels like temperature
-  humidity: number; // Humidity percentage
-  wind_speed: number; // Wind speed in m/s
-  weather: Array<{
-    id: number;
-    main: string;
-    description: string;
-    icon: string;
-  }>;
-  dt_txt: string; // Date and time string
-}
+const QUICK_CITIES = ['Bengaluru', 'London', 'New York', 'Tokyo', 'Paris', 'Dubai', 'Sydney'];
 
-interface HourlyForecastProps {
-  forecastList: HourlyForecastData[];
-}
-
-const HourlyForecastChart: React.FC<HourlyForecastProps> = ({ forecastList }) => {
-  // Limit to 24 hours of forecast
-  const hourlyData = forecastList.slice(0, 24);
-
-  return (
-    <div className="glass-card rounded-xl shadow-md p-6">
-      <h2 className="text-xl font-bold text-gradient mb-4">24-Hour Forecast</h2>
-      <div className="overflow-x-auto">
-        <div className="flex space-x-4 pb-4" style={{ minWidth: `${hourlyData.length * 80}px` }}>
-          {hourlyData.map((hour, index) => {
-            const date = new Date(hour.dt * 1000);
-            const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const dateString = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-
-            return (
-              <div key={index} className="flex flex-col items-center min-w-[70px] group">
-                <div className="text-sm text-slate-300">{timeString}</div>
-                <div className="text-xs text-slate-400 mt-1">{dateString}</div>
-                <img 
-                  src={`https://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png`} 
-                  alt={hour.weather[0].description}
-                  className="w-10 h-10 my-2 group-hover:scale-125 transition-transform duration-300"
-                />
-                <div className="text-lg font-semibold text-gradient-soft">{Math.round(hour.temp)}°</div>
-                <div className="text-xs text-slate-400 mt-1">{Math.round(hour.humidity)}%</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const HourlyForecastTable: React.FC<HourlyForecastProps> = ({ forecastList }) => {
-  // Limit to 24 hours of forecast
-  const hourlyData = forecastList.slice(0, 24);
-
-  return (
-    <div className="glass-card rounded-xl shadow-md overflow-hidden">
-      <h2 className="text-xl font-bold text-gradient p-6 pb-4">24-Hour Forecast Details</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-white/10">
-          <thead className="bg-white/[0.03]">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Time
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Weather
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Temp
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Feels Like
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Humidity
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Wind
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            {hourlyData.map((hour, index) => {
-              const date = new Date(hour.dt * 1000);
-              const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-              
-              return (
-                <tr key={index} className={index % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                    {timeString}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                    <div className="flex items-center">
-                      <img 
-                        src={`https://openweathermap.org/img/wn/${hour.weather[0].icon}.png`} 
-                        alt={hour.weather[0].description}
-                        className="w-8 h-8 mr-2"
-                      />
-                      <span className="capitalize">{hour.weather[0].description}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                    {Math.round(hour.temp)}°C
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                    {Math.round(hour.feels_like)}°C
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                    {hour.humidity}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                    {(hour.wind_speed * 3.6).toFixed(1)} km/h
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-export default function HourlyForecastPage() {
+export default function HourlyWeatherPage() {
+  const [isDark, setIsDark] = useState(true);
   const { forecastData, loading, error, getWeatherByCity } = useWeather();
-  const [city, setCity] = useState<string>('Bengaluru'); // Default city
+  const [cityInput, setCityInput] = useState('Bengaluru');
+  const [activeCity, setActiveCity] = useState('Bengaluru');
 
   useEffect(() => {
-    getWeatherByCity(city);
-  }, [city, getWeatherByCity]);
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
 
-  // Group forecast data by hour for the next 24 hours
-  const hourlyForecast = forecastData?.list || [];
+  useEffect(() => {
+    getWeatherByCity(activeCity);
+  }, [activeCity, getWeatherByCity]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cityInput.trim()) {
+      setActiveCity(cityInput.trim());
+    }
+  };
+
+  const hourlyList = React.useMemo(() => {
+    if (!forecastData?.list) return [];
+    return forecastData.list.slice(0, 12); // Next 12 3-hour blocks (36 hours)
+  }, [forecastData]);
+
+  const T = {
+    bgPage: isDark ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)' : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark ? 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(14,165,233,0.18), transparent)' : 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(14,165,233,0.08), transparent)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    textPrimary: isDark ? '#ffffff' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#64748b',
+    inputBg: isDark ? 'rgba(15, 23, 42, 0.9)' : '#ffffff',
+    inputBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(203, 213, 225, 0.9)',
+  };
 
   return (
-    <div className="container mx-auto p-4 md:p-6 relative z-10">
-      <div className="flex justify-center mb-6">
-        <h1 className="text-3xl font-extrabold text-gradient section-heading text-center py-4 page-enter">Hourly Forecast</h1>
-      </div>
-      
-      <div className="mb-6 page-enter" style={{ animationDelay: '0.1s' }}>
-        <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
-          <div className="flex-grow">
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Enter a city name"
-              className="w-full p-3 glass-input rounded-xl shadow-sm"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  getWeatherByCity(city);
-                }
-              }}
-            />
+    <div style={{ background: T.bgPage, minHeight: '100vh' }} className="relative transition-colors duration-300">
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: T.ambientOrbs }} />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-sky-500/10 text-sky-500 border-sky-500/20">
+            <Clock className="w-3.5 h-3.5" /> Hour-by-Hour Timeline
           </div>
-          <button
-            onClick={() => getWeatherByCity(city)}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-xl glow-btn font-semibold transition-colors"
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: T.textPrimary }}>
+            Hourly Weather Forecast
+          </h1>
+          <p className="mt-2 text-sm sm:text-base max-w-lg mx-auto" style={{ color: T.textSecondary }}>
+            Detailed breakdown of conditions, temperature trajectory, and wind gusts for <strong>{activeCity}</strong>.
+          </p>
+        </div>
+
+        {/* Search Toolbar */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <form onSubmit={handleSearch} className="flex gap-2 mb-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search any global city..."
+                value={cityInput}
+                onChange={(e) => setCityInput(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl font-bold text-xs bg-sky-600 hover:bg-sky-700 text-white shadow-lg hover:scale-105 active:scale-95 transition-all"
+            >
+              Search
+            </button>
+          </form>
+
+          <div className="flex items-center justify-center flex-wrap gap-1.5">
+            {QUICK_CITIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => {
+                  setCityInput(c);
+                  setActiveCity(c);
+                }}
+                className="text-xs px-3 py-1 rounded-lg border font-medium transition-all hover:scale-105"
+                style={{
+                  backgroundColor: activeCity === c ? (isDark ? 'rgba(14,165,233,0.2)' : 'rgba(14,165,233,0.15)') : (isDark ? 'rgba(30, 41, 59, 0.6)' : '#ffffff'),
+                  borderColor: activeCity === c ? '#0ea5e9' : T.cardBorder,
+                  color: activeCity === c ? '#0ea5e9' : T.textPrimary,
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Scrollable Hourly Strip */}
+        {!loading && hourlyList.length > 0 && (
+          <div
+            className="rounded-3xl border p-6 backdrop-blur-xl mb-8 relative overflow-hidden"
+            style={{
+              backgroundColor: T.cardBg,
+              borderColor: T.cardBorder,
+              boxShadow: T.cardShadow,
+            }}
           >
-            Update Forecast
-          </button>
-        </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: T.textSecondary }}>
+                Next 36-Hour Conditions
+              </h2>
+              <span className="text-xs font-semibold" style={{ color: T.textSecondary }}>
+                ← Scroll horizontally →
+              </span>
+            </div>
+
+            <div className="overflow-x-auto pb-3">
+              <div className="flex gap-3 min-w-max">
+                {hourlyList.map((item, idx) => {
+                  const date = new Date(item.dt * 1000);
+                  const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+                  const dateStr = date.toLocaleDateString('en-US', { weekday: 'short' });
+                  const iconCode = item.weather[0]?.icon || '01d';
+                  const temp = Math.round(item.main.temp);
+                  const desc = item.weather[0]?.description || 'Clear';
+
+                  return (
+                    <div
+                      key={idx}
+                      className="w-28 p-3.5 rounded-2xl border text-center transition-all hover:-translate-y-1 flex flex-col justify-between"
+                      style={{
+                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#ffffff',
+                        borderColor: T.cardBorder,
+                        minHeight: '180px',
+                      }}
+                    >
+                      <div>
+                        <div className="font-bold text-xs" style={{ color: T.textPrimary }}>
+                          {timeStr}
+                        </div>
+                        <div className="text-[10px] font-medium" style={{ color: T.textSecondary }}>
+                          {dateStr}
+                        </div>
+
+                        <img
+                          src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`}
+                          alt={desc}
+                          className="w-10 h-10 mx-auto my-1 drop-shadow"
+                        />
+
+                        <div className="font-mono font-black text-xl mb-1" style={{ color: T.textPrimary }}>
+                          {temp}°
+                        </div>
+                        <div className="text-[10px] font-medium capitalize truncate" style={{ color: T.textSecondary }}>
+                          {desc}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t mt-2 flex items-center justify-around text-[10px] font-semibold" style={{ borderColor: T.cardBorder, color: T.textSecondary }}>
+                        <div className="flex items-center gap-0.5">
+                          <Droplets className="w-2.5 h-2.5 text-sky-500" />
+                          <span>{item.main.humidity}%</span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <Wind className="w-2.5 h-2.5 text-teal-500" />
+                          <span>{Math.round(item.wind.speed * 3.6)}k</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {loading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]"></div>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/40 text-red-200 px-4 py-3 rounded-2xl relative mb-6 backdrop-blur-md" role="alert">
-          <strong className="font-bold">Error! </strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
-
-      {forecastData && !loading && !error && (
-        <div className="space-y-6">
-          <HourlyForecastChart forecastList={hourlyForecast as any} />
-          <HourlyForecastTable forecastList={hourlyForecast as any} />
-        </div>
-      )}
-
-      {!loading && !error && !forecastData && (
-        <div className="bg-amber-500/10 border border-amber-500/40 text-amber-200 px-4 py-3 rounded-2xl relative backdrop-blur-md" role="alert">
-          <strong className="font-bold">No Data Available! </strong>
-          <span className="block sm:inline">Please try searching for a valid city.</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -122,7 +122,8 @@ export const NAVBAR_CATEGORIES: NavCategoryConfig[] = [
     title: 'Sun, Moon & Space',
     icon: '🌙',
     items: [
-      { label: 'Sunrise & Sunset', href: '/sun-moon-space/sunrise-sunset', description: 'Golden hour, twilight, dawn & solar noon', icon: '🌅', badge: 'Solar', badgeColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+      { label: 'Observatory Hub', href: '/sun-moon-space', description: 'Comprehensive astronomical command center', icon: '🔭', badge: 'Hub', badgeColor: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
+      { label: 'Sunrise & Sunset', href: '/sun-moon-space/sunrise-sunset', description: 'Golden hour, twilight, dawn & daylight arc', icon: '🌅', badge: 'Solar', badgeColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
       { label: 'Moon Phases', href: '/sun-moon-space/moon-phases', description: 'Real-time lunar cycle, full moon calendar', icon: '🌙', badge: 'Lunar', badgeColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400' },
       { label: 'NASA Picture of the Day', href: '/sun-moon-space/nasa-apod', description: 'Daily astronomy discovery from NASA APOD', icon: '🚀', badge: 'NASA', badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
       { label: 'ISS Tracker', href: '/sun-moon-space/iss', description: 'Live International Space Station orbit tracker', icon: '🛰️', badge: 'ISS', badgeColor: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400' },

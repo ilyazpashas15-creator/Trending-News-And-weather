@@ -1,218 +1,189 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { holidays2026, getCountries, holidayColors, holidayIcons, type Holiday } from '@/data/holidaysData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Sparkles, Globe, Filter, Search, Calendar, Tag } from 'lucide-react';
+import { holidays2026, getCountries, type Holiday } from '@/data/holidaysData';
 
 export default function HolidayCalendar() {
-  const [currentYear] = useState(2026);
-  const [selectedCountry, setSelectedCountry] = useState<string>('All');
-  const [selectedType, setSelectedType] = useState<string>('All');
+  const [isDark, setIsDark] = useState(true);
+  const [selectedCountry, setSelectedCountry] = useState('All');
+  const [selectedType, setSelectedType] = useState('All');
+  const [search, setSearch] = useState('');
 
-  // Get unique countries for filtering
-  const countries = useMemo(() => {
-    return ['All', ...getCountries()];
+  useEffect(() => {
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
   }, []);
 
-  // Holiday types
+  const countries = useMemo(() => ['All', ...getCountries()], []);
   const types = ['All', 'national', 'religious', 'festival', 'observance'];
 
-  // Filter holidays based on selected country and type
-  const filteredHolidays = useMemo(() => {
-    let filtered = holidays2026;
-    
-    if (selectedCountry !== 'All') {
-      filtered = filtered.filter(holiday => holiday.country === selectedCountry);
-    }
-    
-    if (selectedType !== 'All') {
-      filtered = filtered.filter(holiday => holiday.type === selectedType);
-    }
-    
-    return filtered.sort((a, b) => a.date.localeCompare(b.date));
-  }, [selectedCountry, selectedType]);
+  const filtered = useMemo(() => {
+    return holidays2026.filter((h) => {
+      const matchCountry = selectedCountry === 'All' || h.country === selectedCountry;
+      const matchType = selectedType === 'All' || h.type === selectedType;
+      const matchSearch = !search || h.name.toLowerCase().includes(search.toLowerCase()) || h.country.toLowerCase().includes(search.toLowerCase());
+      return matchCountry && matchType && matchSearch;
+    }).sort((a, b) => a.date.localeCompare(b.date));
+  }, [selectedCountry, selectedType, search]);
 
-  // Group holidays by month
-  const holidaysByMonth = useMemo(() => {
-    const grouped: { [key: string]: Holiday[] } = {};
-    
-    filteredHolidays.forEach(holiday => {
-      const month = new Date(holiday.date).toLocaleDateString('en-US', { month: 'long' });
-      if (!grouped[month]) {
-        grouped[month] = [];
-      }
-      grouped[month].push(holiday);
+  const groupedByMonth = useMemo(() => {
+    const groups: { [key: string]: Holiday[] } = {};
+    filtered.forEach((h) => {
+      const monthName = new Date(h.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      if (!groups[monthName]) groups[monthName] = [];
+      groups[monthName].push(h);
     });
-    
-    return grouped;
-  }, [filteredHolidays]);
+    return groups;
+  }, [filtered]);
+
+  const T = {
+    bgPage: isDark ? 'linear-gradient(180deg, #090d16 0%, #0c1220 50%, #090d16 100%)' : 'linear-gradient(180deg, #f8fafc 0%, #eef2f6 50%, #f1f5f9 100%)',
+    ambientOrbs: isDark ? 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(245,158,11,0.18), transparent)' : 'radial-gradient(ellipse 600px 300px at 50% -10%, rgba(245,158,11,0.08), transparent)',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(226, 232, 240, 0.95)',
+    cardShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(15, 23, 42, 0.05)',
+    textPrimary: isDark ? '#ffffff' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#64748b',
+    inputBg: isDark ? 'rgba(15, 23, 42, 0.9)' : '#ffffff',
+    inputBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(203, 213, 225, 0.9)',
+  };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="flex justify-center mb-6">
-        <h1 className="text-4xl font-bold text-white border-2 border-blue-300 p-4 rounded-lg">
-          Holiday Calendar {currentYear}
-        </h1>
-      </div>
-      <p className="text-gray-300 mb-8 text-center text-lg">
-        Comprehensive list of holidays, festivals, and observances from around the world
-      </p>
+    <div style={{ background: T.bgPage, minHeight: '100vh' }} className="relative transition-colors duration-300">
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: T.ambientOrbs }} />
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Country filter */}
-        <div>
-          <label htmlFor="country-filter" className="block text-lg font-medium mb-2 text-gray-300">
-            Filter by Country/Region
-          </label>
-          <select
-            id="country-filter"
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-blue-400 rounded-lg bg-[#1a2942] text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            {countries.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Type filter */}
-        <div>
-          <label htmlFor="type-filter" className="block text-lg font-medium mb-2 text-gray-300">
-            Filter by Type
-          </label>
-          <select
-            id="type-filter"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-blue-400 rounded-lg bg-[#1a2942] text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            {types.map((type) => (
-              <option key={type} value={type}>
-                {type === 'All' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#1a2942] border-2 border-red-400 rounded-lg p-4 text-center">
-          <div className="text-3xl mb-2">🎌</div>
-          <div className="text-2xl font-bold text-white">
-            {holidays2026.filter(h => h.type === 'national').length}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-amber-500/10 text-amber-500 border-amber-500/20">
+            <Sparkles className="w-3.5 h-3.5" /> World Holidays & Observances 2026
           </div>
-          <div className="text-sm text-gray-300">National</div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: T.textPrimary }}>
+            Holiday Calendar
+          </h1>
+          <p className="mt-2 text-sm sm:text-base max-w-lg mx-auto" style={{ color: T.textSecondary }}>
+            Explore official public holidays, religious festivities, and cultural events worldwide.
+          </p>
         </div>
-        <div className="bg-[#1a2942] border-2 border-purple-400 rounded-lg p-4 text-center">
-          <div className="text-3xl mb-2">🕉️</div>
-          <div className="text-2xl font-bold text-white">
-            {holidays2026.filter(h => h.type === 'religious').length}
-          </div>
-          <div className="text-sm text-gray-300">Religious</div>
-        </div>
-        <div className="bg-[#1a2942] border-2 border-blue-400 rounded-lg p-4 text-center">
-          <div className="text-3xl mb-2">🎉</div>
-          <div className="text-2xl font-bold text-white">
-            {holidays2026.filter(h => h.type === 'festival').length}
-          </div>
-          <div className="text-sm text-gray-300">Festivals</div>
-        </div>
-        <div className="bg-[#1a2942] border-2 border-blue-400 rounded-lg p-4 text-center">
-          <div className="text-3xl mb-2">📅</div>
-          <div className="text-2xl font-bold text-white">
-            {holidays2026.filter(h => h.type === 'observance').length}
-          </div>
-          <div className="text-sm text-gray-300">Observances</div>
-        </div>
-      </div>
 
-      {/* Results count */}
-      <div className="mb-4 text-center">
-        <span className="text-lg text-gray-300">
-          Showing <span className="font-bold text-blue-400">{filteredHolidays.length}</span> holidays
-        </span>
-      </div>
-
-      {/* Holidays grouped by month */}
-      <div className="space-y-8">
-        {Object.entries(holidaysByMonth).map(([month, monthHolidays]) => (
-          <div key={month} className="bg-[#1a2942] rounded-lg shadow-lg overflow-hidden border-2 border-blue-400">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-              <h2 className="text-2xl font-bold text-white">{month} {currentYear}</h2>
+        {/* Toolbar: Search + Country & Type Filters */}
+        <div
+          className="rounded-2xl border p-5 mb-8 backdrop-blur-xl space-y-4"
+          style={{
+            backgroundColor: T.cardBg,
+            borderColor: T.cardBorder,
+            boxShadow: T.cardShadow,
+          }}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="relative sm:col-span-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search holidays..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none"
+                style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+              />
             </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[#0d1929] text-white">
-                  <tr>
-                    <th className="px-6 py-4 text-left">Date</th>
-                    <th className="px-6 py-4 text-left">Holiday Name</th>
-                    <th className="px-6 py-4 text-left">Type</th>
-                    <th className="px-6 py-4 text-left">Country/Region</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthHolidays.map((holiday, index) => (
-                    <tr
-                      key={index}
-                      className={`
-                        border-b border-gray-700 hover:bg-[#2a3f5f] transition
-                        ${index % 2 === 0 ? 'bg-[#1a2942]' : 'bg-[#0d1929]'}
-                      `}
-                    >
-                      <td className="px-6 py-4 font-semibold text-blue-400">
-                        {new Date(holiday.date).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-white">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{holidayIcons[holiday.type]}</span>
-                          <div>
-                            <div className="font-medium">{holiday.name}</div>
-                            {holiday.description && (
-                              <div className="text-sm text-gray-400">{holiday.description}</div>
-                            )}
+
+            <div>
+              <select
+                aria-label="Filter by Country"
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold focus:outline-none"
+                style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+              >
+                {countries.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'All' ? '🌐 All Countries' : `📍 ${c}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <select
+                aria-label="Filter by Category"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold focus:outline-none capitalize"
+                style={{ backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.textPrimary }}
+              >
+                {types.map((t) => (
+                  <option key={t} value={t}>
+                    Category: {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Grouped Holidays By Month */}
+        {Object.keys(groupedByMonth).length === 0 ? (
+          <div className="text-center py-16 text-sm" style={{ color: T.textSecondary }}>
+            No holidays matched your criteria.
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {Object.entries(groupedByMonth).map(([monthTitle, items]) => (
+              <div key={monthTitle}>
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: T.textPrimary }}>
+                  <Calendar className="w-4 h-4 text-amber-500" /> {monthTitle} ({items.length})
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {items.map((h, hIdx) => {
+                    const d = new Date(h.date);
+                    const dayFormatted = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+
+                    return (
+                      <div
+                        key={hIdx}
+                        className="rounded-2xl border p-4 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between relative overflow-hidden"
+                        style={{
+                          backgroundColor: T.cardBg,
+                          borderColor: T.cardBorder,
+                          boxShadow: T.cardShadow,
+                          minHeight: '115px',
+                        }}
+                      >
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
+
+                        <div>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="text-xs font-mono font-bold text-amber-500">
+                              {dayFormatted}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500">
+                              {h.type}
+                            </span>
                           </div>
+
+                          <h3 className="font-bold text-sm" style={{ color: T.textPrimary }}>
+                            {h.name}
+                          </h3>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${holidayColors[holiday.type]}`}>
-                          {holiday.type.charAt(0).toUpperCase() + holiday.type.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-300">{holiday.country}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+
+                        <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t" style={{ borderColor: T.cardBorder, color: T.textSecondary }}>
+                          <span>{h.country}</span>
+                          <span className="font-mono text-[11px]">{h.date}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      {filteredHolidays.length === 0 && (
-        <div className="text-center py-12 bg-[#1a2942] rounded-lg border-2 border-blue-400">
-          <div className="text-6xl mb-4">📅</div>
-          <p className="text-xl text-gray-300">No holidays found for the selected filters.</p>
-          <p className="text-gray-400 mt-2">Try adjusting your filters to see more results.</p>
-        </div>
-      )}
-
-      <div className="mt-8 p-6 bg-[#1a2942] border-2 border-blue-400 rounded-lg">
-        <h3 className="text-lg font-bold text-white mb-2">About This Calendar</h3>
-        <p className="text-gray-300">
-          This comprehensive holiday calendar includes national holidays, religious celebrations, 
-          cultural festivals, and special observances from countries around the world including 
-          India, USA, UK, Canada, Australia, France, Mexico, and more. Use the filters above to 
-          find holidays specific to your region or type of celebration.
-        </p>
+        )}
       </div>
     </div>
   );
